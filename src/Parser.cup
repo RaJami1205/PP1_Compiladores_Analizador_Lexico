@@ -1,0 +1,26 @@
+import java_cup.runtime.*;
+
+/* ---------------- Parser code ---------------- */
+parser code {:
+    public static void main(String[] args) throws Exception {
+        // Crear lexer leyendo desde consola
+        Lexer lexer = new Lexer(new java.io.InputStreamReader(System.in));
+        Parser p = new Parser(lexer);
+        p.parse();
+        System.out.println("Parsing terminado con éxito.");
+    }
+:};
+
+/* ---------------- Terminales ---------------- */
+terminal LET, ID, NUM, PYC;
+
+/* ---------------- No terminales ---------------- */
+non terminal program, stmt;
+
+/* ---------------- Producciones ---------------- */
+program ::= stmt+ ;
+
+stmt ::= LET ID PYC
+       | ID PYC
+       | NUM PYC
+       ;
