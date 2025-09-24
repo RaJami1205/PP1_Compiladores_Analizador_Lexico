@@ -31,5 +31,3 @@ ID      = {LETRA}({LETRA}|{DIGITO}|_)*
 
 /* Caracter ilegal */
 .            { System.err.println("Caracter ilegal: " + yytext()); }
-
-Prueba de commit
