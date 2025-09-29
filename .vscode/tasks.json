@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generar Lexer",
+      "type": "shell",
+      "command": "java",
+      "args": [
+        "-jar", "lib/jflex-full-1.9.1.jar",
+        "src/Lexer.flex",
+        "-d", "src"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Generar Parser",
+      "type": "shell",
+      "command": "java",
+      "args": [
+        "-jar", "lib/java-cup-11b.jar",
+        "-parser", "Parser",
+        "-symbols", "sym",
+        "-destdir", "src",
+        "src/Parser.cup"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Compilar Java",
+      "type": "shell",
+      "command": "javac",
+      "args": [
+        "-d", "bin",
+        "-cp", "lib/*",
+        "src/*.java"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Ejecutar Parser",
+      "type": "shell",
+      "command": "java",
+      "args": [
+        "-cp", "bin;lib/*",
+        "Parser"
+      ],
+      "group": "test",
+      "dependsOn": ["Generar Lexer", "Generar Parser", "Compilar Java"]
+    }
+  ]
+}
