@@ -46,6 +46,15 @@
       ],
       "group": "test",
       "dependsOn": ["Generar Lexer", "Generar Parser", "Compilar Java"]
+    },
+    {
+      "label": "Build Completo",
+      "dependsOn": ["Generar Lexer", "Generar Parser", "Compilar Java", "Ejecutar Parser"],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
