@@ -29,13 +29,14 @@ CommentLine = "|" [^\r\n]*
 CommentMulti = "¡" [^!]* "!"
 
 /* Literales */
-Digit = [0-9]
+Digito = [0-9]
 IntegerLiteral = {Digit}+
 FloatLiteral = {Digit}+ "." {Digit}+
 BooleanLiteral = "true" | "false"
 CharLiteral = "'" [^'] "'"
 StringLiteral = "\"" [^\"]* "\""
 Identifier = [a-zA-Z] [a-zA-Z0-9_]*
+
 
 %%
 

@@ -23,171 +23,222 @@ parser code {:
 :}
  
 init with {: :};
- 
-/* define how to connect to the scanner! */
-scan with {: return lex.next_token(); :}
+
+ scan with {: return lex.next_token(); :}
 
 /* Definición de los terminales */
-terminal LET, PROCEDURE ,PRINCIPAL, FUNCTION, INT, FLOAT, CHAR, BOOL, DECIDE
-,OF, ELSE, END, LOOP, EXIT, WHEN, FOR, STEP, TO, DOWNTO, DO, RETURN, BREAK,
-INPUT, OUTPUT, ASSIGN, LT, LE, GT, GE, EQ, NE, PLUS,
-MINUS, MULT, DIV, INT_DIV, MOD, POW, AND, OR, SIGMA, INCREMENT, DECREMENT, OPEN_PAREN,
-CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, OPEN_BRACKET, CLOSE_BRACKET, COLON, COMMA,
-ARROW, SEMICOLON;
+terminal 
+    LET, PROCEDURE, PRINCIPAL, FUNCTION, INT, FLOAT, CHAR, BOOL, TRUE, FALSE,
+    DECIDE, OF, ELSE, END, LOOP, EXIT, WHEN, FOR, STEP, TO, DOWNTO, DO,
+    RETURN, BREAK, INPUT, OUTPUT,
+    ASSIGN, LT, LE, GT, GE, EQ, NE, PLUS, MINUS, MULT, DIV, INT_DIV, MOD, POW,
+    AND, OR, SIGMA, INCREMENT, DECREMENT,
+    OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,
+    OPEN_BRACKET, CLOSE_BRACKET, COLON, COMMA, ARROW, SEMICOLON,
+    INTEGER_LITERAL, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL, IDENTIFIER;
 
-/* Símbolos especiales */
-    "є"                { return symbol(sym.OPEN_PAREN); }
-    "э"                { return symbol(sym.CLOSE_PAREN); }
-    "¿"                { return symbol(sym.OPEN_BRACE); }
-    "?"                { return symbol(sym.CLOSE_BRACE); }
-    "["                { return symbol(sym.OPEN_BRACKET); }
-    "]"                { return symbol(sym.CLOSE_BRACKET); }
-    ":"                { return symbol(sym.COLON); }
-    ","                { return symbol(sym.COMMA); }
-    "->"               { return symbol(sym.ARROW); }
-    "$"                { return symbol(sym.SEMICOLON); }
-
- 
 
 /* Definición de los no terminales */
-non terminal programa, decl_glob, decl_var, funcion, param_formales_opt,
- param, tipo_ret, tipo, tipo_arreglo, tam_arreglo, bloque, sentencia,
- sent_decl_local, sent_asig_o_expr, sent_decide, sent_loop, sent_for,
- sent_return, sent_break, sent_io, comentario, comentario_linea,
- comentario_multilinea, sent_decl_local, decl_var, init_opt, init_arr_opt,
- asignacion, lvalue, expr_sin_asignacion, sent_decide, sent_loop, sent_for,
- sent_return, sent_break, sent_io, lista_out, expr, expr_log_or, expr_log_and,
- expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria, op_unario,
- expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
- cond_bool, lit, lit_entero, lit_flotante, lit_bool, lit_char, lit_string,
- lit_arreglo, lit_entero, lit_flotante, lit_bool, lit_char, lit_string,
- lit_arreglo, lit_entero, lit_flotante, lit_bool, lit_char, lit_string,
- lit_arreglo, signo_opt;
-
-start with program;
-
-control::=  for_B | while_B | doWhile_B | optn ;
-
-expr ::= exprUni | asignacionUni | read | write | return_A | control;
-bloque ::= expr | bloque expr ;
-
-params ::= PARENTESIS_I creacion  PARENTESIS_D ;
+non terminal 
+    programa, decl_glob, decl_var, funcion, principal, 
+    param_formales_opt, lista_params, param, tipo_ret, tipo, tipo_arreglo, tam_arreglo,
+    bloque, sentencia, sent_decl_local, sent_asig_o_expr, sent_decide, sent_loop, sent_for,
+    sent_return, sent_break, sent_io, comentario, comentario_linea, comentario_multilinea,
+    init_opt, init_arr_opt, asignacion, lvalue, expr_sin_asignacion, lista_out, expr,
+    expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
+    op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
+    cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, signo_opt, valor_step,sent_loop_rec,for_dir,sent_decide_rec;
 
 
-funcMain ::= tipoFunc IDENTIFICADOR params FINLINEA
-            | tipoFunc IDENTIFICADOR params  LLAVE_ABIERTO_T bloque LLAVE_CERRADO_T;
-dec ::= funcMain ; 
+// PROGRAMA
 
-decS ::= dec
-        | decS dec;
+start with programa;
 
-inicio ::= decS;
+programa::= decl_glob programa | funcion programa | principal;
 
-programa ::= inicio ;
+decl_glob ::= LET decl_var SEMICOLON ;
 
-programa ::= <decl_glob>* <funcion>* <principal>
-decl_glob ::= "let" <decl_var> "$"
-principal ::= "procedure" "principal" "є" "э" <bloque> /* void, sin parámetros */
-funcion ::= "function" <id> "є" <param_formales_opt> "э" ":" <tipo_ret>
- <bloque>
-<param_formales_opt> ::= /* vacío */
- | <lista_params>
-<lista_params> ::= <param> ("," <param>)*
-<param> ::= <id> ":" <tipo>
-<tipo_ret> ::= "int" | "float" | "char" | "bool"
-<tipo> ::= "int"
- | "float"
- | "char"
- | "bool"
- | <tipo_arreglo>
-<tipo_arreglo> ::= "int" "[" <tam_arreglo> "]"
- | "char" "[" <tam_arreglo> "]"
-<tam_arreglo> ::= <lit_entero> /* tamaño estático, positivo */
+principal::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque ;
+ 
+funcion ::= FUNCTION IDENTIFIER OPEN_PAREN param_formales_opt CLOSE_PAREN COLON tipo_ret bloque ;
+            
+param_formales_opt ::= /* vacío */ | lista_params; 
+
+lista_params ::= param | param  COMMA lista_params 
+
+param ::= IDENTIFIER COLON tipo ;
+
+tipo_ret ::=  INT | FLOAT | CHAR | BOOL ;
+
+tipo ::= INT | FLOAT | CHAR | BOOL | tipo_arreglo;
+
+tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET | CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET ;
+
+tam_arreglo ::= INTEGER_LITERAL ;
+
 /* ===================== BLOQUES Y SENTENCIAS ===================== */
-<bloque> ::= "¿" <sentencia>* "?"
- | <sentencia> /* bloque reducido: una sola sentencia */
-<sentencia> ::= <sent_decl_local>
- | <sent_asig_o_expr>
- | <sent_decide>
- | <sent_loop>
- | <sent_for>
- | <sent_return>
- | <sent_break>
- | <sent_io>
- | <comentario> /* comentarios como sentencia (se ignoran) */
-<comentario> ::= <comentario_linea> | <comentario_multilinea>
-<comentario_linea> ::= "|" <caracter>* <fin_linea>
-<comentario_multilinea> ::= "¡" <caracter_comentario>* "!"
-<sent_decl_local> ::= "let" <decl_var> "$"
-<decl_var> ::= <id> ":" <tipo> <init_opt>
- | <id> ":" <tipo_arreglo> <init_arr_opt>
-<init_opt> ::= /* vacío */
- | "=" <expr>
-<init_arr_opt> ::= /* vacío */
- | "=" <lit_arreglo> /* creación con asignación */
-<asignacion> ::= <lvalue> "=" <expr>
-<lvalue> ::= <id>
- | <id> "[" <expr> "]" /* acceso/modificación de arreglo */
-<expr_sin_asignacion> ::= <expr> /* expresiones permitidas como sentencia */
+
+
+bloque ::= OPEN_BRACE CLOSE_BRACE | OPEN_BRACE sentencia bloque CLOSE_BRACE | sentencia ;
+
+sentencia ::= sent_decl_local
+            | sent_asig_o_expr
+            | sent_decide
+            | sent_loop
+            | sent_for
+            | sent_return
+            | sent_break
+            | sent_io
+            | comentario 
+            ;
+
+comentario ::= comentario_linea| comentario_multilinea ;
+
+comentario_linea ::= COMMENT_LINE ; // REVISAR COMMENTS
+comentario_multilinea ::= COMMENT_MULTI ;
+
+sent_decl_local ::= LET decl_var SEMICOLON ;
+
+decl_var ::= IDENTIFIER COLON tipo init_opt | IDENTIFIER COLON tipo_arreglo init_arr_opt ;
+
+init_opt ::= /* vacío */ | ASSIGN expr ;
+
+init_arr_opt ::= /* vacío */ | ASSIGN lit_arreglo ;
+
+asignacion ::= lvalue ASSIGN expr ;
+
+lvalue ::= IDENTIFIER 
+        | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET ;
+
+expr_sin_asignacion ::= expr ;
+
+sent_asig_o_expr ::= asignacion SEMICOLON
+                  | expr_sin_asignacion SEMICOLON
+                  ;
+
 /* ===================== ESTRUCTURAS DE CONTROL ====================*/
-<sent_decide> ::= "decide" "of"
- ( "є" <cond_bool> "э" "->" <bloque> )+
- ( "else" "->" <bloque> )?
- "end" "decide" "$"
-<sent_loop> ::= "loop"
- <sentencia>*
- "exit" "when" <cond_bool> "$"
- "end" "loop" "$"
-<sent_for> ::= "for" <asignacion> "step" <valor_step>
- ( "to" | "downto" ) <expr> "do"
- <bloque>
-<valor_step> ::= <lit_entero> | <lit_flotante>
+
+sent_decide ::= DECIDE OF OPEN_PAREN cond_bool CLOSE_PAREN ARROW bloque sent_decide_rec END DECIDE SEMICOLON ;
+
+sent_decide_rec ::=
+      OPEN_PAREN cond_bool CLOSE_PAREN ARROW bloque sent_decide_rec
+    | ELSE ARROW bloque
+    | /* vacío */
+    ;
+
+sent_loop ::= LOOP sent_loop_rec EXIT WHEN cond_bool SEMICOLON END LOOP SEMICOLON ;
+
+sent_loop_rec ::= sentencia sent_loop_rec | /* vacío */ ;
+
+sent_for ::=FOR asignacion STEP valor_step for_dir expr DO bloque ;
+
+for_dir ::= TO | DOWNTO ;
+
+valor_step ::= INTEGER_LITERAL | FLOAT_LITERAL ;
+
 /* ===================== RETURN / BREAK ===================== */
-<sent_return> ::= "return" <expr> "$"
- | "return" "$" /* en funciones void NO se usa; sólo por flexibilidad */
-<sent_break> ::= "break" "$"
+
+sent_return ::= RETURN expr SEMICOLON| RETURN SEMICOLON;
+
+sent_break ::= BREAK SEMICOLON ;
+
 /* ===================== I/O ===================== */
-<sent_io> ::= "input" "є" <id> "э" "$" /* lee a variable int o float */
- | "output" "є" <lista_out> "э" "$"
-<lista_out> ::= <expr> ("," <expr>)* /* literales o variables de tipo permitido */
+
+sent_io ::= INPUT OPEN_PAREN IDENTIFIER CLOSE_PAREN SEMICOLON
+          | OUTPUT OPEN_PAREN lista_out CLOSE_PAREN SEMICOLON
+          ;
+
+lista_out ::= expr | expr COMMA lista_out ;
+
 /* ===================== EXPRESIONES ===================== */
-<expr> ::= <expr_log_or>
-<expr_log_or> ::= <expr_log_and> ( "~" <expr_log_and> )*
-<expr_log_and> ::= <expr_rel> ( "@" <expr_rel> )*
-<expr_rel> ::= <expr_aditiva>
- | <expr_aditiva> <op_rel> <expr_aditiva>
-<op_rel> ::= "<" | "<=" | ">" | ">=" | "==" | "!="
-<expr_aditiva> ::= <expr_mult> ( ("+" | "-") <expr_mult> )*
-<expr_mult> ::= <expr_pot> ( ("*" | "/" | "//" | "%") <expr_pot> )*
-<expr_pot> ::= <expr_unaria> ( "^" <expr_unaria> )*
-<expr_unaria> ::= <op_unario> <expr_unaria>
- | <expr_postfijo>
-<op_unario> ::= "-" | "Σ"
-<expr_postfijo> ::= <primario> ( <postfix_op> )*
-<postfix_op> ::= "++" | "--" | "[" <expr> "]"
-<primario> ::= <lit>
- | <lvalue>
- | <llamada_func>
- | "є" <expr> "э"
-<llamada_func> ::= <id> "є" <lista_args_opt> "э"
-<lista_args_opt> ::= /* vacío */
- | <lista_args>
-<lista_args> ::= <expr> ("," <expr>)*
-<cond_bool> ::= <expr> /* debe tipar a boolean en control de flujo */
+
+expr ::= expr_log_or ;
+
+expr_log_or ::= expr_log_and | expr_log_and OR expr_log_or ;
+
+expr_log_and ::= expr_rel | expr_rel AND expr_log_and ;
+
+expr_rel ::= expr_aditiva | expr_aditiva op_rel expr_aditiva ;
+
+op_rel ::=
+      LT
+    | LE
+    | GT
+    | GE
+    | EQ
+    | NE
+    ;
+
+expr_aditiva ::=
+      expr_mult
+    | expr_mult PLUS expr_aditiva
+    | expr_mult MINUS expr_aditiva
+    ;
+
+expr_mult ::=
+      expr_pot
+    | expr_pot MULT expr_mult
+    | expr_pot DIV expr_mult
+    | expr_pot INT_DIV expr_mult
+    | expr_pot MOD expr_mult
+    ;
+
+expr_pot ::= expr_unaria | expr_unaria POW expr_pot ;
+
+expr_unaria ::= op_unario expr_unaria | expr_postfijo ;
+
+op_unario ::=
+      MINUS
+    | SIGMA
+    ;
+
+expr_postfijo ::=
+      primario
+    | primario postfix_op
+    | primario postfix_op expr_postfijo
+    ;
+
+postfix_op ::=
+      INCREMENT
+    | DECREMENT
+    | OPEN_BRACKET expr CLOSE_BRACKET
+    ;
+
+primario ::=
+      lit
+    | lvalue
+    | llamada_func
+    | OPEN_PAREN expr CLOSE_PAREN
+    ;
+
+llamada_func ::=
+      IDENTIFIER OPEN_PAREN lista_args_opt CLOSE_PAREN
+    ;
+
+lista_args_opt ::= /* vacío */ | lista_args ;
+
+lista_args ::= expr | expr COMMA lista_args ;
+
+cond_bool ::= expr ;
+
+
 /* ===================== LITERALES ===================== */
-<lit> ::= <lit_entero>
- | <lit_flotante>
- | <lit_bool>
- | <lit_char>
- | <lit_string>
- | <lit_arreglo>
-<lit_entero> ::= <signo_opt> <digito>+
-<lit_flotante> ::= <signo_opt> <digito>+ "." <digito>+
-<lit_bool> ::= "true" | "false"
-<lit_char> ::= "'" <caracter> "'"
-<lit_string> ::= "\"" <caracter_string>* "\""
-<lit_arreglo> ::= "¿" <lista_elem_arr_opt> "?"
-<lista_elem_arr_opt> ::= /* vacío */
- | <lista_elem_arr>
-<lista_elem_arr> ::= <expr> ("," <expr>)*
-<signo_opt> ::= /* vacío */ | "-"
+
+lit ::= INTEGER_LITERAL
+      | FLOAT_LITERAL
+      | TRUE
+      | FALSE
+      | CHAR_LITERAL
+      | STRING_LITERAL
+      | OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE
+      ;
+
+
+lista_elem_arr_opt ::= /* vacío */
+                     | lista_elem_arr
+                     ;
+
+lista_elem_arr ::= expr
+                 | expr COMMA lista_elem_arr
+                 ;
+
