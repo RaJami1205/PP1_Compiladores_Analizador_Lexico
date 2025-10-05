@@ -35,7 +35,7 @@ terminal
     AND, OR, SIGMA, INCREMENT, DECREMENT,
     OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,
     OPEN_BRACKET, CLOSE_BRACKET, COLON, COMMA, ARROW, SEMICOLON,
-    INTEGER_LITERAL, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL, IDENTIFIER;
+    INTEGER_LITERAL, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL, IDENTIFIER, COMMENT_LINE, COMMENT_MULTI;
 
 
 /* Definición de los no terminales */
@@ -47,30 +47,31 @@ non terminal
     init_opt, init_arr_opt, asignacion, lvalue, expr_sin_asignacion, lista_out, expr,
     expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
-    cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, signo_opt, valor_step,sent_loop_rec,for_dir,sent_decide_rec;
+    cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
+    lit_arreglo;
 
 
 // PROGRAMA
 
 start with programa;
 
-programa::= decl_glob programa | funcion programa | principal;
+programa ::= decl_glob programa | funcion programa | principal;
 
 decl_glob ::= LET decl_var SEMICOLON ;
 
-principal::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque ;
+principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque ;
  
 funcion ::= FUNCTION IDENTIFIER OPEN_PAREN param_formales_opt CLOSE_PAREN COLON tipo_ret bloque ;
             
-param_formales_opt ::= /* vacío */ | lista_params; 
+param_formales_opt ::= /* vacío */ | lista_params ; 
 
-lista_params ::= param | param  COMMA lista_params 
+lista_params ::= param | param  COMMA lista_params ;
 
 param ::= IDENTIFIER COLON tipo ;
 
 tipo_ret ::=  INT | FLOAT | CHAR | BOOL ;
 
-tipo ::= INT | FLOAT | CHAR | BOOL | tipo_arreglo;
+tipo ::= INT | FLOAT | CHAR | BOOL | tipo_arreglo ;
 
 tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET | CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET ;
 
@@ -130,7 +131,7 @@ sent_loop ::= LOOP sent_loop_rec EXIT WHEN cond_bool SEMICOLON END LOOP SEMICOLO
 
 sent_loop_rec ::= sentencia sent_loop_rec | /* vacío */ ;
 
-sent_for ::=FOR asignacion STEP valor_step for_dir expr DO bloque ;
+sent_for ::= FOR asignacion STEP valor_step for_dir expr DO bloque ;
 
 for_dir ::= TO | DOWNTO ;
 
@@ -138,7 +139,7 @@ valor_step ::= INTEGER_LITERAL | FLOAT_LITERAL ;
 
 /* ===================== RETURN / BREAK ===================== */
 
-sent_return ::= RETURN expr SEMICOLON| RETURN SEMICOLON;
+sent_return ::= RETURN expr SEMICOLON| RETURN SEMICOLON ;
 
 sent_break ::= BREAK SEMICOLON ;
 
@@ -160,7 +161,7 @@ expr_log_and ::= expr_rel | expr_rel AND expr_log_and ;
 
 expr_rel ::= expr_aditiva | expr_aditiva op_rel expr_aditiva ;
 
-op_rel ::=
+op_rel ::= 
       LT
     | LE
     | GT
@@ -169,13 +170,13 @@ op_rel ::=
     | NE
     ;
 
-expr_aditiva ::=
+expr_aditiva ::= 
       expr_mult
     | expr_mult PLUS expr_aditiva
     | expr_mult MINUS expr_aditiva
     ;
 
-expr_mult ::=
+expr_mult ::= 
       expr_pot
     | expr_pot MULT expr_mult
     | expr_pot DIV expr_mult
@@ -187,31 +188,31 @@ expr_pot ::= expr_unaria | expr_unaria POW expr_pot ;
 
 expr_unaria ::= op_unario expr_unaria | expr_postfijo ;
 
-op_unario ::=
+op_unario ::= 
       MINUS
     | SIGMA
     ;
 
-expr_postfijo ::=
+expr_postfijo ::= 
       primario
     | primario postfix_op
     | primario postfix_op expr_postfijo
     ;
 
-postfix_op ::=
+postfix_op ::= 
       INCREMENT
     | DECREMENT
     | OPEN_BRACKET expr CLOSE_BRACKET
     ;
 
-primario ::=
+primario ::= 
       lit
     | lvalue
     | llamada_func
     | OPEN_PAREN expr CLOSE_PAREN
     ;
 
-llamada_func ::=
+llamada_func ::= 
       IDENTIFIER OPEN_PAREN lista_args_opt CLOSE_PAREN
     ;
 
@@ -229,7 +230,7 @@ lit ::= INTEGER_LITERAL
       | TRUE
       | FALSE
       | CHAR_LITERAL
-      | STRING_LITERAL
+      | STRING_LITERAL              
       | OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE
       ;
 

@@ -7,8 +7,8 @@
       "command": "java",
       "args": [
         "-jar", "lib/jflex-full-1.9.1.jar",
-        "src/Lexer.flex",
-        "-d", "src"
+        "src/Codigo/Lexer.flex",
+        "-d", "src/ParserLexer"
       ],
       "group": "build"
     },
@@ -21,7 +21,7 @@
         "-parser", "Parser",
         "-symbols", "sym",
         "-destdir", "src",
-        "src/Parser.cup"
+        "src/Codigo/Parser.cup"
       ],
       "group": "build"
     },

@@ -30,8 +30,8 @@ CommentMulti = "¡" [^!]* "!"
 
 /* Literales */
 Digito = [0-9]
-IntegerLiteral = {Digit}+
-FloatLiteral = {Digit}+ "." {Digit}+
+IntegerLiteral = {Digito}+
+FloatLiteral = {Digito}+ "." {Digito}+
 BooleanLiteral = "true" | "false"
 CharLiteral = "'" [^'] "'"
 StringLiteral = "\"" [^\"]* "\""
