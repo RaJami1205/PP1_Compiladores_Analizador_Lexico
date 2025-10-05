@@ -49,6 +49,8 @@ Identifier = [a-zA-Z] [a-zA-Z0-9_]*
     "float"            { return symbol(sym.FLOAT); }
     "char"             { return symbol(sym.CHAR); }
     "bool"             { return symbol(sym.BOOL); }
+    "true"             { return symbol(sym.TRUE); }
+    "false"            { return symbol(sym.FALSE); }
     "decide"           { return symbol(sym.DECIDE); }
     "of"               { return symbol(sym.OF); }
     "else"             { return symbol(sym.ELSE); }
@@ -102,7 +104,7 @@ Identifier = [a-zA-Z] [a-zA-Z0-9_]*
     /* Literales */
     {IntegerLiteral}   { return symbol(sym.INTEGER_LITERAL, new Integer(yytext())); }
     {FloatLiteral}     { return symbol(sym.FLOAT_LITERAL, new Float(yytext())); }
-    {BooleanLiteral}   { return symbol(sym.BOOLEAN_LITERAL, new Boolean(yytext().equals("true"))); }
+    
     {CharLiteral}      { return symbol(sym.CHAR_LITERAL, yytext().charAt(1)); }
     {StringLiteral}    { return symbol(sym.STRING_LITERAL, yytext().substring(1, yytext().length()-1)); }
     {Identifier}       { return symbol(sym.IDENTIFIER, yytext()); }
