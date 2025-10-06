@@ -48,19 +48,20 @@ non terminal
     expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
-    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias, lista_params_opt;
+    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,decl_var_arreglo;
 
 
 // PROGRAMA
 
+/*
 precedence left OR;
 precedence left AND;
 precedence nonassoc LT LE GT GE EQ NE;
 precedence left PLUS MINUS;
 precedence left MULT DIV INT_DIV MOD;
 precedence right POW;
-precedence right SIGMA MINUS; // unarios
-
+precedence right SIGMA; // unarios
+*/
 
 
 
@@ -80,8 +81,6 @@ funcion ::= FUNCTION IDENTIFIER OPEN_PAREN param_formales_opt CLOSE_PAREN COLON 
             
 param_formales_opt ::= /* vacío */ | lista_params ; 
 
-lista_params_opt ::= /* vacío */ | lista_params ;
-
 lista_params ::= lista_params COMMA param | param;
 
 param ::= IDENTIFIER COLON tipo ;
@@ -90,7 +89,7 @@ tipo_ret ::=  INT | FLOAT | CHAR | BOOL ;
 
 tipo ::= INT | FLOAT | CHAR | BOOL | tipo_arreglo ;
 
-tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET | CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET ;
+tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET| CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET ;
 
 tam_arreglo ::= INTEGER_LITERAL ;
 
@@ -121,7 +120,12 @@ comentario_multilinea ::= COMMENT_MULTI ;
 
 sent_decl_local ::= LET decl_var SEMICOLON ;
 
-decl_var ::= IDENTIFIER COLON tipo init_opt | IDENTIFIER COLON tipo_arreglo init_arr_opt ;
+decl_var ::= decl_var_simple | decl_var_arreglo ;
+
+decl_var_simple ::= IDENTIFIER COLON tipo init_opt ;
+
+decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
+
 
 init_opt ::= /* vacío */ | ASSIGN expr ;
 
@@ -210,7 +214,7 @@ expr_unaria ::= op_unario expr_unaria
               | expr_postfijo
               ;
 
-op_unario ::= MINUS | SIGMA ;
+op_unario ::= SIGMA | MINUS;
 
 expr_postfijo ::= expr_postfijo postfix_op
                 | primario
