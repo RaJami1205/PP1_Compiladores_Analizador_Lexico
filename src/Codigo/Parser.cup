@@ -44,7 +44,7 @@ non terminal
     param_formales_opt, lista_params, param, tipo_ret, tipo, tipo_arreglo, tam_arreglo,
     bloque, sentencia, sent_decl_local, sent_asig_o_expr, sent_decide, sent_loop, sent_for,
     sent_return, sent_break, sent_io, comentario, comentario_linea, comentario_multilinea,
-    init_opt, init_arr_opt, asignacion, lvalue, expr_sin_asignacion, lista_out, expr,
+    init_opt, asignacion, lvalue, expr_sin_asignacion, lista_out, expr,
     expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
@@ -111,23 +111,25 @@ comentario ::= comentario_linea| comentario_multilinea ;
 comentario_linea ::= COMMENT_LINE ; // REVISAR COMMENTS
 comentario_multilinea ::= COMMENT_MULTI ;
 
-sent_decl_local ::= LET decl_var SEMICOLON ;
+sent_decl_local ::= LET decl_var SEMICOLON;
 
-decl_var ::= decl_var_simple | decl_var_arreglo ;
+decl_var ::= decl_var_simple | decl_var_arreglo;
 
-decl_var_simple ::= IDENTIFIER COLON tipo init_opt ;
+decl_var_simple ::=  tipo IDENTIFIER ;
 
-decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
+decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo ;
 
 
 init_opt ::= /* vacío */ | ASSIGN expr ;
 
-init_arr_opt ::= /* vacío */ | ASSIGN lit_arreglo ;
+//init_arr_opt ::=  ASSIGN lit_arreglo  | /*vacio*/;
+
 
 asignacion ::= lvalue ASSIGN expr ;
 
-lvalue ::= IDENTIFIER 
-        | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET ;
+
+lvalue ::= IDENTIFIER ;
+//| IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET ;
 
 expr_sin_asignacion ::= expr ;
 
@@ -243,10 +245,12 @@ lit ::= INTEGER_LITERAL
       | FALSE
       | CHAR_LITERAL
       | STRING_LITERAL              
-      | OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE
+      | lit_arreglo
       ;
 
+lit_arreglo ::= OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE ;
 
 lista_elem_arr_opt ::= /* vacío */| lista_elem_arr ;
 
 lista_elem_arr ::= lista_elem_arr COMMA expr | expr;
+
