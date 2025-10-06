@@ -50,20 +50,13 @@ non terminal
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
     lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,decl_var_arreglo;
 
-
-// PROGRAMA
-
-/*
 precedence left OR;
 precedence left AND;
-precedence nonassoc LT LE GT GE EQ NE;
-precedence left PLUS MINUS;
-precedence left MULT DIV INT_DIV MOD;
+precedence nonassoc LT, LE, GT, GE, EQ, NE;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV, INT_DIV, MOD;
 precedence right POW;
-precedence right SIGMA; // unarios
-*/
-
-
+precedence right SIGMA; 
 
 start with programa;
 
