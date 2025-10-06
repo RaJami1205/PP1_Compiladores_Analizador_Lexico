@@ -48,14 +48,29 @@ non terminal
     expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
-    lit_arreglo;
+    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias, lista_params_opt;
 
 
 // PROGRAMA
 
+precedence left OR;
+precedence left AND;
+precedence nonassoc LT LE GT GE EQ NE;
+precedence left PLUS MINUS;
+precedence left MULT DIV INT_DIV MOD;
+precedence right POW;
+precedence right SIGMA MINUS; // unarios
+
+
+
+
 start with programa;
 
-programa ::= decl_glob programa | funcion programa | principal;
+programa ::= lista_decl;
+
+lista_decl ::= lista_decl decl | decl;
+
+decl ::= decl_glob | funcion | principal ; // para evitar ambiguedades
 
 decl_glob ::= LET decl_var SEMICOLON ;
 
@@ -65,7 +80,9 @@ funcion ::= FUNCTION IDENTIFIER OPEN_PAREN param_formales_opt CLOSE_PAREN COLON 
             
 param_formales_opt ::= /* vacío */ | lista_params ; 
 
-lista_params ::= param | param  COMMA lista_params ;
+lista_params_opt ::= /* vacío */ | lista_params ;
+
+lista_params ::= lista_params COMMA param | param;
 
 param ::= IDENTIFIER COLON tipo ;
 
@@ -80,7 +97,11 @@ tam_arreglo ::= INTEGER_LITERAL ;
 /* ===================== BLOQUES Y SENTENCIAS ===================== */
 
 
-bloque ::= OPEN_BRACE CLOSE_BRACE | OPEN_BRACE sentencia bloque CLOSE_BRACE | sentencia ;
+bloque ::= OPEN_BRACE lista_sentencias_opt CLOSE_BRACE ;
+
+lista_sentencias_opt ::= /* vacío */ | lista_sentencias ;
+
+lista_sentencias ::= lista_sentencias sentencia | sentencia ; // evitar ambiguedades 
 
 sentencia ::= sent_decl_local
             | sent_asig_o_expr
@@ -149,68 +170,62 @@ sent_io ::= INPUT OPEN_PAREN IDENTIFIER CLOSE_PAREN SEMICOLON
           | OUTPUT OPEN_PAREN lista_out CLOSE_PAREN SEMICOLON
           ;
 
-lista_out ::= expr | expr COMMA lista_out ;
+lista_out ::= lista_out COMMA expr | expr;
 
 /* ===================== EXPRESIONES ===================== */
 
 expr ::= expr_log_or ;
 
-expr_log_or ::= expr_log_and | expr_log_and OR expr_log_or ;
+expr_log_or ::= expr_log_or OR expr_log_and
+              | expr_log_and
+              ;
 
-expr_log_and ::= expr_rel | expr_rel AND expr_log_and ;
+expr_log_and ::= expr_log_and AND expr_rel
+               | expr_rel
+               ;
 
-expr_rel ::= expr_aditiva | expr_aditiva op_rel expr_aditiva ;
+expr_rel ::= expr_aditiva op_rel expr_aditiva
+           | expr_aditiva
+           ;
 
-op_rel ::= 
-      LT
-    | LE
-    | GT
-    | GE
-    | EQ
-    | NE
-    ;
+op_rel ::= LT | LE | GT | GE | EQ | NE ;
 
-expr_aditiva ::= 
-      expr_mult
-    | expr_mult PLUS expr_aditiva
-    | expr_mult MINUS expr_aditiva
-    ;
+expr_aditiva ::= expr_aditiva PLUS expr_mult
+               | expr_aditiva MINUS expr_mult
+               | expr_mult
+               ;
 
-expr_mult ::= 
-      expr_pot
-    | expr_pot MULT expr_mult
-    | expr_pot DIV expr_mult
-    | expr_pot INT_DIV expr_mult
-    | expr_pot MOD expr_mult
-    ;
+expr_mult ::= expr_mult MULT expr_pot
+            | expr_mult DIV expr_pot
+            | expr_mult INT_DIV expr_pot
+            | expr_mult MOD expr_pot
+            | expr_pot
+            ;
 
-expr_pot ::= expr_unaria | expr_unaria POW expr_pot ;
+expr_pot ::= expr_unaria POW expr_pot
+           | expr_unaria
+           ;
 
-expr_unaria ::= op_unario expr_unaria | expr_postfijo ;
+expr_unaria ::= op_unario expr_unaria
+              | expr_postfijo
+              ;
 
-op_unario ::= 
-      MINUS
-    | SIGMA
-    ;
+op_unario ::= MINUS | SIGMA ;
 
-expr_postfijo ::= 
-      primario
-    | primario postfix_op
-    | primario postfix_op expr_postfijo
-    ;
+expr_postfijo ::= expr_postfijo postfix_op
+                | primario
+                ;
 
-postfix_op ::= 
-      INCREMENT
-    | DECREMENT
-    | OPEN_BRACKET expr CLOSE_BRACKET
-    ;
+postfix_op ::= INCREMENT
+             | DECREMENT
+             | OPEN_BRACKET expr CLOSE_BRACKET
+             ;
 
-primario ::= 
-      lit
-    | lvalue
-    | llamada_func
-    | OPEN_PAREN expr CLOSE_PAREN
-    ;
+primario ::= lit
+           | lvalue
+           | llamada_func
+           | OPEN_PAREN expr CLOSE_PAREN
+           ;
 
 llamada_func ::= 
       IDENTIFIER OPEN_PAREN lista_args_opt CLOSE_PAREN
@@ -218,7 +233,7 @@ llamada_func ::=
 
 lista_args_opt ::= /* vacío */ | lista_args ;
 
-lista_args ::= expr | expr COMMA lista_args ;
+lista_args ::=  lista_args  COMMA expr | expr ;
 
 cond_bool ::= expr ;
 
@@ -235,11 +250,6 @@ lit ::= INTEGER_LITERAL
       ;
 
 
-lista_elem_arr_opt ::= /* vacío */
-                     | lista_elem_arr
-                     ;
+lista_elem_arr_opt ::= /* vacío */| lista_elem_arr ;
 
-lista_elem_arr ::= expr
-                 | expr COMMA lista_elem_arr
-                 ;
-
+lista_elem_arr ::= lista_elem_arr COMMA expr | expr;
