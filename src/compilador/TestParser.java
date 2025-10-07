@@ -35,10 +35,10 @@ public class TestParser {
 
             System.out.println("Iniciando análisis sintáctico...");
             parser.parse();
-            System.out.println("Análisis completado sin errores.");
+            System.out.println("Análisis completado sin errores. El archivo es válido según la gramática.");
 
         } catch (Exception e) {
-            System.out.println("? Error durante el análisis:");
+            System.out.println("? Error durante el análisis. El archivo no puede ser generado por la gramatica:");
             e.printStackTrace();
         }
     }

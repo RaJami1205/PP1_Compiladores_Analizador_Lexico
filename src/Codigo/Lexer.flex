@@ -10,6 +10,7 @@ import java_cup.runtime.*;
 %line
 %column
 %public
+%ignorecase
 
 %{
     private Symbol symbol(int type) {
@@ -118,5 +119,6 @@ Identifier = [a-zA-Z] [a-zA-Z0-9_]*
     {WhiteSpace}       { /* ignorar */ }
 }
 
-/* Error fallback */
-[^] { throw new Error("Carácter ilegal: '" + yytext() + "' en línea " + (yyline+1) + ", columna " + (yycolumn+1)); }
+[^ \t\r\n] {
+    System.err.println("Error léxico en línea " + (yyline+1) + ", columna " + (yycolumn+1) + ": " + yytext());
+}
