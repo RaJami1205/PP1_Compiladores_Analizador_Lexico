@@ -48,7 +48,8 @@ non terminal
     expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
-    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,decl_var_arreglo;
+    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,decl_var_arreglo,
+    init_arr_opt,lvalue_aux;
 
 precedence left OR;
 precedence left AND;
@@ -115,21 +116,23 @@ sent_decl_local ::= LET decl_var SEMICOLON;
 
 decl_var ::= decl_var_simple | decl_var_arreglo;
 
-decl_var_simple ::=  tipo IDENTIFIER ;
+decl_var_simple ::=  tipo IDENTIFIER init_opt;
 
-decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo ;
-
+decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
 
 init_opt ::= /* vacío */ | ASSIGN expr ;
 
-//init_arr_opt ::=  ASSIGN lit_arreglo  | /*vacio*/;
-
+init_arr_opt ::=   /*vacio*/ |ASSIGN lit_arreglo;
+ 
 
 asignacion ::= lvalue ASSIGN expr ;
 
 
-lvalue ::= IDENTIFIER ;
-//| IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET ;
+lvalue ::= IDENTIFIER lvalue_aux;
+
+lvalue_aux::= /*vacio*/ | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET ;
+
+
 
 expr_sin_asignacion ::= expr ;
 
