@@ -20,7 +20,7 @@
         "-jar", "lib/java-cup-11b.jar",
         "-parser", "Parser",
         "-symbols", "sym",
-        "-destdir", "src",
+        "-destdir", "src/ParserLexer",
         "src/Codigo/Parser.cup"
       ],
       "group": "build"
@@ -31,25 +31,32 @@
       "command": "javac",
       "args": [
         "-d", "bin",
-        "-cp", "lib/*",
-        "src/*.java"
+        "-cp", "'lib/*;src'",
+        "src/ParserLexer/*.java",
+        "src/Compilador/*.java"
       ],
       "group": "build"
     },
     {
-      "label": "Ejecutar Parser",
+      "label": "Ejecutar TestParser",
       "type": "shell",
       "command": "java",
       "args": [
-        "-cp", "bin;lib/*",
-        "Parser"
+        "-cp", "'bin;lib/*'",
+        "Compilador.TestParser",
+        "src/testing/ejemplo.txt"
       ],
       "group": "test",
       "dependsOn": ["Generar Lexer", "Generar Parser", "Compilar Java"]
     },
     {
       "label": "Build Completo",
-      "dependsOn": ["Generar Lexer", "Generar Parser", "Compilar Java", "Ejecutar Parser"],
+      "dependsOn": [
+        "Generar Lexer",
+        "Generar Parser",
+        "Compilar Java",
+        "Ejecutar TestParser"
+      ],
       "dependsOrder": "sequence",
       "group": {
         "kind": "build",

@@ -12,14 +12,13 @@ import java_cup.runtime.*;
 :}
  
 parser code {:
-    BasicLexerCup lex;
-   
+    Lexer lex;
+
     @SuppressWarnings("deprecation")
-    public parser(BasicLexerCup lex){
-        this.lex=lex;
+    public Parser(Lexer lex){
+        this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
     }
-
 :}
  
 init with {: :};

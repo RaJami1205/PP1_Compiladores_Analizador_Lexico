@@ -1,0 +1,14 @@
+LET contador : INT = 0$
+
+FUNCTION suma(a : INT, b : INT) : INT {
+    LET resultado : INT = a + b;
+    RETURN resultado;
+}
+
+PROCEDURE PRINCIPAL() {
+    LET x : INT = 5;
+    LET y : INT = 10;
+    LET z : INT = suma(x, y);
+
+    OUTPUT(z);
+}
