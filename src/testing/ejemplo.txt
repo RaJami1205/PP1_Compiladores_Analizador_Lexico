@@ -1,14 +1,19 @@
-LET contador : INT = 0$
+let x int = 10 $
+let y float = 3.5 $
 
-FUNCTION suma(a : INT, b : INT) : INT {
-    LET resultado : INT = a + b;
-    RETURN resultado;
-}
+procedure principal ¿
+    let z int = 0 $
+    
+    for z = 0 setp 1 to 5 do ¿
+        outputєzэ $
+    ?
 
-PROCEDURE PRINCIPAL() {
-    LET x : INT = 5;
-    LET y : INT = 10;
-    LET z : INT = suma(x, y);
+    decide of ¿x > y? -> ¿
+        outputє"x es mayor"э $
+    ?
+    else -> ¿
+        outputє"y es mayor o igual"є $
+    ?
+    end decide $
 
-    OUTPUT(z);
-}
+? 
