@@ -33,6 +33,11 @@ public class TestParser {
             lexer = new Lexer(fr);
             Parser parser = new Parser(lexer);
 
+            String rutaBase = System.getProperty("user.dir");
+            String salida = rutaBase + "/testing/salida.asm";
+            parser.codegen.guardarArchivo(salida);
+            System.out.println("Código MIPS generado en testing/salida.asm");
+
             System.out.println("Iniciando análisis sintáctico...");
             parser.parse();
             System.out.println("Análisis completado sin errores. El archivo es válido según la gramática.");

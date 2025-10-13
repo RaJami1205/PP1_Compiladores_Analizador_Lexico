@@ -6,6 +6,7 @@
 package ParserLexer;
 
 import java_cup.runtime.*;
+import Compilador.CodeGeneratorMIPS;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -707,6 +708,8 @@ public class Parser extends java_cup.runtime.lr_parser {
     }
 
 
+    public CodeGeneratorMIPS codegen = new CodeGeneratorMIPS();
+
     Lexer lex;
 
     @SuppressWarnings("deprecation")
@@ -721,13 +724,8 @@ public class Parser extends java_cup.runtime.lr_parser {
 class CUP$Parser$actions {
 
 
- 
-    public void hola(){
-        System.out.println("hola.");
-    }
- 
-    public void adios(){
-        System.out.println("adios");
+    void emitir(String s) {
+        codegen.addInstruction(s);
     }
 
   private final Parser parser;

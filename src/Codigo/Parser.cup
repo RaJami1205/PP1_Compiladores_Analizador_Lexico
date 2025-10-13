@@ -1,17 +1,9 @@
 package ParserLexer;
 import java_cup.runtime.*;
- action code {:
- 
-    public void hola(){
-        System.out.println("hola.");
-    }
- 
-    public void adios(){
-        System.out.println("adios");
-    }
-:}
- 
+import Compilador.CodeGeneratorMIPS;
 parser code {:
+    public CodeGeneratorMIPS codegen = new CodeGeneratorMIPS();
+
     Lexer lex;
 
     @SuppressWarnings("deprecation")
@@ -20,6 +12,12 @@ parser code {:
         this.symbolFactory = new DefaultSymbolFactory();
     }
 :}
+
+action code {:
+    void emitir(String s) {
+        codegen.addInstruction(s);
+    }
+:};
  
 init with {: :};
 
