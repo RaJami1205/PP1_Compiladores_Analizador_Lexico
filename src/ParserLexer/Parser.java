@@ -6,7 +6,7 @@
 package ParserLexer;
 
 import java_cup.runtime.*;
-import Compilador.CodeGeneratorMIPS;
+import Compilador.SymbolTable;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -708,7 +708,8 @@ public class Parser extends java_cup.runtime.lr_parser {
     }
 
 
-    public CodeGeneratorMIPS codegen = new CodeGeneratorMIPS();
+
+    public SymbolTable symbolTable = new SymbolTable();
 
     Lexer lex;
 
@@ -722,12 +723,6 @@ public class Parser extends java_cup.runtime.lr_parser {
 /** Cup generated class to encapsulate user supplied action code.*/
 @SuppressWarnings({"rawtypes", "unchecked", "unused"})
 class CUP$Parser$actions {
-
-
-    void emitir(String s) {
-        codegen.addInstruction(s);
-    }
-
   private final Parser parser;
 
   /** Constructor */
@@ -1190,6 +1185,15 @@ class CUP$Parser$actions {
           case 48: // decl_var_simple ::= tipo IDENTIFIER init_opt 
             {
               Object RESULT =null;
+		int tipoleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int tiporight = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		Object tipo = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int idleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		Object id = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int valor_optleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int valor_optright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		Object valor_opt = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("decl_var_simple",59, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }

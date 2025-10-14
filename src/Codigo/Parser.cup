@@ -1,8 +1,9 @@
 package ParserLexer;
 import java_cup.runtime.*;
-import Compilador.CodeGeneratorMIPS;
+import Compilador.SymbolTable;
 parser code {:
-    public CodeGeneratorMIPS codegen = new CodeGeneratorMIPS();
+
+    public SymbolTable symbolTable = new SymbolTable();
 
     Lexer lex;
 
@@ -13,12 +14,6 @@ parser code {:
     }
 :}
 
-action code {:
-    void emitir(String s) {
-        codegen.addInstruction(s);
-    }
-:};
- 
 init with {: :};
 
  scan with {: return lex.next_token(); :}
@@ -113,7 +108,7 @@ sent_decl_local ::= LET decl_var SEMICOLON;
 
 decl_var ::= decl_var_simple | decl_var_arreglo;
 
-decl_var_simple ::=  tipo IDENTIFIER init_opt;
+decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valor_opt ;
 
 decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
 
