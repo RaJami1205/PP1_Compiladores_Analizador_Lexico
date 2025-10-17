@@ -104,8 +104,8 @@ Identifier = [a-zA-Z] [a-zA-Z0-9_]*
     "$"                { return symbol(sym.SEMICOLON); }
     
     /* Literales */
-    {IntegerLiteral}   { return symbol(sym.INTEGER_LITERAL, new Integer(yytext())); }
-    {FloatLiteral}     { return symbol(sym.FLOAT_LITERAL, new Float(yytext())); }
+    {IntegerLiteral}   { return symbol(sym.INTEGER_LITERAL, Integer.valueOf(yytext())); }
+    {FloatLiteral}     { return symbol(sym.FLOAT_LITERAL, Float.valueOf(yytext())); }
     
     {CharLiteral}      { return symbol(sym.CHAR_LITERAL, yytext().charAt(1)); }
     {StringLiteral}    { return symbol(sym.STRING_LITERAL, yytext().substring(1, yytext().length()-1)); }

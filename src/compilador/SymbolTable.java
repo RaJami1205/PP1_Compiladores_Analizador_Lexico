@@ -17,6 +17,14 @@ public class SymbolTable {
         return table.get(name);
     }
 
+    // MÉTODO NUEVO PARA ACTUALIZAR VALORES
+    public void updateValue(String name, Object value) {
+        if (table.containsKey(name)) {
+            SymbolInfo info = table.get(name);
+            info.value = value;
+        }
+    }
+
     public void printTable() {
         System.out.println("Tabla de símbolos:");
         for (SymbolInfo info : table.values()) {

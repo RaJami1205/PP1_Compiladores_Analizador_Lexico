@@ -248,4 +248,3 @@ lit_arreglo ::= OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE ;
 lista_elem_arr_opt ::= /* vacío */| lista_elem_arr ;
 
 lista_elem_arr ::= lista_elem_arr COMMA expr | expr;
-
