@@ -38,14 +38,17 @@ public class TestParser {
             
             System.out.println("Iniciando análisis sintáctico...");
             parser.parse();
+            System.out.println("-------------------------------------");
 
             System.out.println("\n--- Resumen de errores ---");
             if (Parser.errores.isEmpty()) {
                 System.out.println("No se encontraron errores sintácticos.");
+                System.out.println("El archivo es valido y puede ser generado por la gramatica.\n");
             } else {
                 for (String err : Parser.errores) {
                     System.out.println(err);
                 }
+                System.out.println("\nEl archivo no puede ser generado por la gramatica.\n");
             }
             
 
