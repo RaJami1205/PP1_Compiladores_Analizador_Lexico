@@ -1,16 +1,37 @@
 package ParserLexer;
 import java_cup.runtime.*;
 import Compilador.SymbolTable;
+
 parser code {:
-
-    public SymbolTable symbolTable = new SymbolTable();
-
     Lexer lex;
+    public static java.util.List<String> errores = new java.util.ArrayList<>();
 
     @SuppressWarnings("deprecation")
-    public Parser(Lexer lex){
+    public Parser(Lexer lex) {
         this.lex = lex;
         this.symbolFactory = new DefaultSymbolFactory();
+    }
+
+    @Override
+    public void report_error(String message, Object info) {
+        errores.add("Error sintáctico: " + message + " en " + info);
+        System.err.println("Error sintáctico: " + message + " en " + info);
+    }
+
+    @Override
+    public void syntax_error(Symbol cur_token) {
+        errores.add("Token inesperado '" + cur_token.value + 
+                    "' en línea " + (cur_token.left+1) + 
+                    ", columna " + (cur_token.right+1));
+        System.err.println("Token inesperado '" + cur_token.value + 
+                           "' en línea " + (cur_token.left+1) + 
+                           ", columna " + (cur_token.right+1));
+    }
+
+    @Override
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        errores.add("Error no recuperable: " + cur_token.value);
+        System.err.println("Error no recuperable: " + cur_token.value);
     }
 :}
 
@@ -248,3 +269,20 @@ lit_arreglo ::= OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE ;
 lista_elem_arr_opt ::= /* vacío */| lista_elem_arr ;
 
 lista_elem_arr ::= lista_elem_arr COMMA expr | expr;
+
+/* Recuperación de errores */
+
+sentencia ::= error SEMICOLON
+    {: 
+        System.err.println("Recuperado de error: se omite hasta ';'");
+    :};
+
+bloque ::= OPEN_BRACE error CLOSE_BRACE
+    {: 
+        System.err.println("Error dentro del bloque, se recuperó al cerrar '}'");
+    :};
+
+decl ::= error SEMICOLON
+    {: 
+        System.err.println("Declaración inválida ignorada hasta ';'");
+    :};

@@ -1,0 +1,7 @@
+let int numero = 5$
+let char letra = 'A'$
+
+procedure principalєэ ¿
+    outputє"El número es:"э$
+    outputєnumeroэ$
+?

@@ -18,8 +18,6 @@ public class TestParser {
         System.out.println("-------------------------------------");
 
         try {
-            // Crear tabla de símbolos única
-            SymbolTable symbolTable = new SymbolTable();
             
             FileReader fr = new FileReader(archivo);
             Lexer lexer = new Lexer(fr);
@@ -37,20 +35,19 @@ public class TestParser {
             
             // Pasar la tabla de símbolos al parser
             Parser parser = new Parser(lexer);
-            parser.setSymbolTable(symbolTable);
             
             System.out.println("Iniciando análisis sintáctico...");
             parser.parse();
-            System.out.println("Errores encontrados: " + parser.errCount);
-            
-            if (parser.errCount == 0) {
-                System.out.println("Análisis completado sin errores. El archivo es válido según la gramática.");
+
+            System.out.println("\n--- Resumen de errores ---");
+            if (Parser.errores.isEmpty()) {
+                System.out.println("No se encontraron errores sintácticos.");
             } else {
-                System.out.println("Análisis completado con " + parser.errCount + " errores.");
+                for (String err : Parser.errores) {
+                    System.out.println(err);
+                }
             }
             
-            // Mostrar tabla de símbolos final
-            symbolTable.printTable();
 
         } catch (Exception e) {
             System.out.println("? Error durante el análisis. El archivo no puede ser generado por la gramatica:");
