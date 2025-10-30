@@ -2010,7 +2010,7 @@ class CUP$Parser$actions {
             {
               Object RESULT =null;
 		 
-        System.err.println("Recuperado de error: se omite hasta ';'");
+        System.err.println("Recuperado de error: se omite hasta '$'");
     
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("sentencia",13, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -2021,7 +2021,7 @@ class CUP$Parser$actions {
             {
               Object RESULT =null;
 		 
-        System.err.println("Error dentro del bloque, se recuperó al cerrar '}'");
+        System.err.println("Error dentro del bloque, se recuperó al cerrar 'э'");
     
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("bloque",12, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -2032,7 +2032,7 @@ class CUP$Parser$actions {
             {
               Object RESULT =null;
 		 
-        System.err.println("Declaración inválida ignorada hasta ';'");
+        System.err.println("Declaración inválida ignorada hasta '$'");
     
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("decl",56, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }

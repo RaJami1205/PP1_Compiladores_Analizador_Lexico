@@ -274,15 +274,15 @@ lista_elem_arr ::= lista_elem_arr COMMA expr | expr;
 
 sentencia ::= error SEMICOLON
     {: 
-        System.err.println("Recuperado de error: se omite hasta ';'");
+        System.err.println("Recuperado de error: se omite hasta '$'");
     :};
 
 bloque ::= OPEN_BRACE error CLOSE_BRACE
     {: 
-        System.err.println("Error dentro del bloque, se recuperó al cerrar '}'");
+        System.err.println("Error dentro del bloque, se recuperó al cerrar 'э'");
     :};
 
 decl ::= error SEMICOLON
     {: 
-        System.err.println("Declaración inválida ignorada hasta ';'");
+        System.err.println("Declaración inválida ignorada hasta '$'");
     :};
