@@ -33,7 +33,6 @@ CommentMulti = "¡" [^!]* "!"
 Digito = [0-9]
 IntegerLiteral = {Digito}+
 FloatLiteral = {Digito}+ "." {Digito}+
-BooleanLiteral = "true" | "false"
 CharLiteral = "'" [^'] "'"
 StringLiteral = "\"" [^\"]* "\""
 Identifier = [a-zA-Z] [a-zA-Z0-9_]*
@@ -47,10 +46,10 @@ Identifier = [a-zA-Z] [a-zA-Z0-9_]*
     "procedure"        { return symbol(sym.PROCEDURE); }
     "principal"        { return symbol(sym.PRINCIPAL); }
     "function"         { return symbol(sym.FUNCTION); }
-    "int"              { return symbol(sym.INT); }
-    "float"            { return symbol(sym.FLOAT); }
-    "char"             { return symbol(sym.CHAR); }
-    "bool"             { return symbol(sym.BOOL); }
+    "int"              { return symbol(sym.INT, "int"); }
+    "float"            { return symbol(sym.FLOAT, "float"); }
+    "char"             { return symbol(sym.CHAR, "char"); }
+    "bool"             { return symbol(sym.BOOL, "bool"); }
     "true"             { return symbol(sym.TRUE); }
     "false"            { return symbol(sym.FALSE); }
     "decide"           { return symbol(sym.DECIDE); }

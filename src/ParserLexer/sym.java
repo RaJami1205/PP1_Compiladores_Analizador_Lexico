@@ -8,83 +8,88 @@ package ParserLexer;
 /** CUP generated class containing symbol constants. */
 public class sym {
   /* terminals */
-  public static final int POW = 41;
-  public static final int WHEN = 18;
-  public static final int STRING_LITERAL = 60;
-  public static final int OPEN_PAREN = 47;
-  public static final int FUNCTION = 5;
-  public static final int INCREMENT = 45;
-  public static final int MULT = 37;
-  public static final int CHAR = 8;
-  public static final int CHAR_LITERAL = 59;
-  public static final int GE = 32;
-  public static final int OUTPUT = 27;
-  public static final int INPUT = 26;
-  public static final int INT = 6;
-  public static final int SIGMA = 44;
-  public static final int DECREMENT = 46;
-  public static final int MINUS = 36;
-  public static final int FOR = 19;
-  public static final int PRINCIPAL = 4;
-  public static final int SEMICOLON = 56;
-  public static final int AND = 42;
-  public static final int LT = 29;
-  public static final int DECIDE = 12;
-  public static final int CLOSE_PAREN = 48;
-  public static final int OR = 43;
-  public static final int COMMA = 54;
-  public static final int BOOL = 9;
-  public static final int DIV = 38;
-  public static final int PLUS = 35;
-  public static final int LOOP = 16;
-  public static final int EXIT = 17;
-  public static final int ASSIGN = 28;
-  public static final int LE = 30;
-  public static final int OF = 13;
+  public static final int POW = 46;
+  public static final int WHEN = 23;
+  public static final int OPEN_PAREN = 52;
+  public static final int STRING_LITERAL = 6;
+  public static final int FUNCTION = 16;
+  public static final int INCREMENT = 50;
+  public static final int MULT = 42;
+  public static final int CHAR = 11;
+  public static final int GE = 37;
+  public static final int CHAR_LITERAL = 5;
+  public static final int OUTPUT = 32;
+  public static final int INPUT = 31;
+  public static final int INT = 9;
+  public static final int SIGMA = 49;
+  public static final int DECREMENT = 51;
+  public static final int MINUS = 41;
+  public static final int FOR = 24;
+  public static final int PRINCIPAL = 15;
+  public static final int SEMICOLON = 61;
+  public static final int AND = 47;
+  public static final int LT = 34;
+  public static final int DECIDE = 17;
+  public static final int CLOSE_PAREN = 53;
+  public static final int OR = 48;
+  public static final int COMMA = 59;
+  public static final int BOOL = 12;
+  public static final int DIV = 43;
+  public static final int PLUS = 40;
+  public static final int LOOP = 21;
+  public static final int EXIT = 22;
+  public static final int ASSIGN = 33;
+  public static final int LE = 35;
+  public static final int OF = 18;
   public static final int EOF = 0;
-  public static final int RETURN = 24;
-  public static final int TRUE = 10;
+  public static final int RETURN = 29;
+  public static final int TRUE = 7;
   public static final int error = 1;
-  public static final int OPEN_BRACE = 49;
-  public static final int MOD = 40;
-  public static final int CLOSE_BRACKET = 52;
-  public static final int OPEN_BRACKET = 51;
-  public static final int BREAK = 25;
-  public static final int EQ = 33;
-  public static final int ARROW = 55;
-  public static final int COLON = 53;
-  public static final int ELSE = 14;
+  public static final int OPEN_BRACE = 54;
+  public static final int MOD = 45;
+  public static final int CLOSE_BRACKET = 57;
+  public static final int OPEN_BRACKET = 56;
+  public static final int BREAK = 30;
+  public static final int EQ = 38;
+  public static final int ARROW = 60;
+  public static final int COLON = 58;
+  public static final int ELSE = 19;
   public static final int COMMENT_MULTI = 63;
-  public static final int TO = 21;
-  public static final int LET = 2;
-  public static final int FLOAT = 7;
-  public static final int NE = 34;
-  public static final int END = 15;
-  public static final int INT_DIV = 39;
-  public static final int CLOSE_BRACE = 50;
-  public static final int DOWNTO = 22;
+  public static final int TO = 26;
+  public static final int LET = 13;
+  public static final int FLOAT = 10;
+  public static final int NE = 39;
+  public static final int END = 20;
+  public static final int INT_DIV = 44;
+  public static final int CLOSE_BRACE = 55;
+  public static final int DOWNTO = 27;
   public static final int COMMENT_LINE = 62;
-  public static final int FLOAT_LITERAL = 58;
-  public static final int FALSE = 11;
-  public static final int GT = 31;
-  public static final int PROCEDURE = 3;
-  public static final int DO = 23;
-  public static final int STEP = 20;
-  public static final int IDENTIFIER = 61;
-  public static final int INTEGER_LITERAL = 57;
+  public static final int FLOAT_LITERAL = 4;
+  public static final int FALSE = 8;
+  public static final int GT = 36;
+  public static final int PROCEDURE = 14;
+  public static final int DO = 28;
+  public static final int STEP = 25;
+  public static final int INTEGER_LITERAL = 3;
+  public static final int IDENTIFIER = 2;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
-  "LET",
-  "PROCEDURE",
-  "PRINCIPAL",
-  "FUNCTION",
+  "IDENTIFIER",
+  "INTEGER_LITERAL",
+  "FLOAT_LITERAL",
+  "CHAR_LITERAL",
+  "STRING_LITERAL",
+  "TRUE",
+  "FALSE",
   "INT",
   "FLOAT",
   "CHAR",
   "BOOL",
-  "TRUE",
-  "FALSE",
+  "LET",
+  "PROCEDURE",
+  "PRINCIPAL",
+  "FUNCTION",
   "DECIDE",
   "OF",
   "ELSE",
@@ -130,11 +135,6 @@ public class sym {
   "COMMA",
   "ARROW",
   "SEMICOLON",
-  "INTEGER_LITERAL",
-  "FLOAT_LITERAL",
-  "CHAR_LITERAL",
-  "STRING_LITERAL",
-  "IDENTIFIER",
   "COMMENT_LINE",
   "COMMENT_MULTI"
   };

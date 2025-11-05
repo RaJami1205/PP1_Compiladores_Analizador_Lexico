@@ -5,6 +5,7 @@ import Compilador.SymbolTable;
 parser code {:
     Lexer lex;
     public static java.util.List<String> errores = new java.util.ArrayList<>();
+    public static SymbolTable tablaSimbolos = new SymbolTable();
 
     @SuppressWarnings("deprecation")
     public Parser(Lexer lex) {
@@ -40,15 +41,24 @@ init with {: :};
  scan with {: return lex.next_token(); :}
 
 /* Definición de los terminales */
+
+terminal String IDENTIFIER;
+terminal Integer INTEGER_LITERAL;
+terminal Float FLOAT_LITERAL;
+terminal Character CHAR_LITERAL;
+terminal String STRING_LITERAL;
+terminal Boolean TRUE, FALSE;
+
+terminal String INT, FLOAT, CHAR, BOOL;
+
 terminal 
-    LET, PROCEDURE, PRINCIPAL, FUNCTION, INT, FLOAT, CHAR, BOOL, TRUE, FALSE,
+    LET, PROCEDURE, PRINCIPAL, FUNCTION,
     DECIDE, OF, ELSE, END, LOOP, EXIT, WHEN, FOR, STEP, TO, DOWNTO, DO,
     RETURN, BREAK, INPUT, OUTPUT,
     ASSIGN, LT, LE, GT, GE, EQ, NE, PLUS, MINUS, MULT, DIV, INT_DIV, MOD, POW,
     AND, OR, SIGMA, INCREMENT, DECREMENT,
     OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,
-    OPEN_BRACKET, CLOSE_BRACKET, COLON, COMMA, ARROW, SEMICOLON,
-    INTEGER_LITERAL, FLOAT_LITERAL, CHAR_LITERAL, STRING_LITERAL, IDENTIFIER, COMMENT_LINE, COMMENT_MULTI;
+    OPEN_BRACKET, CLOSE_BRACKET, COLON, COMMA, ARROW, SEMICOLON, COMMENT_LINE, COMMENT_MULTI;
 
 
 /* Definición de los no terminales */
@@ -82,9 +92,16 @@ decl ::= decl_glob | funcion | principal ; // para evitar ambiguedades
 
 decl_glob ::= LET decl_var SEMICOLON ;
 
-principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque ;
+principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque 
+    {: 
+        System.out.println("Procedimiento principal terminado."); 
+    :};
  
-funcion ::= FUNCTION IDENTIFIER OPEN_PAREN param_formales_opt CLOSE_PAREN COLON tipo_ret bloque ;
+funcion ::= FUNCTION IDENTIFIER:id OPEN_PAREN param_formales_opt CLOSE_PAREN tipo_ret:ret bloque
+    {:
+        tablaSimbolos.addSymbol((String)id, (String)ret, "function", null);
+        System.out.println("Función agregada: " + id + " -> tipo " + ret);
+    :};
             
 param_formales_opt ::= /* vacío */ | lista_params ; 
 
@@ -92,18 +109,39 @@ lista_params ::= lista_params COMMA param | param;
 
 param ::= IDENTIFIER COLON tipo ;
 
-tipo_ret ::=  INT | FLOAT | CHAR | BOOL ;
+tipo_ret ::= INT   {: RESULT = "int"; :}
+            | FLOAT {: RESULT = "float"; :}
+            | CHAR  {: RESULT = "char"; :}
+            | BOOL  {: RESULT = "bool"; :}
+            ;
 
-tipo ::= INT | FLOAT | CHAR | BOOL | tipo_arreglo ;
+tipo ::= INT   {: RESULT = "int"; :}
+       | FLOAT {: RESULT = "float"; :}
+       | CHAR  {: RESULT = "char"; :}
+       | BOOL  {: RESULT = "bool"; :}
+       | tipo_arreglo {: RESULT = "array"; :}
+       ;
 
-tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET| CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET ;
+tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET {: RESULT = "int[]"; :}
+               | CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET {: RESULT = "char[]"; :}
+               ;
 
 tam_arreglo ::= INTEGER_LITERAL ;
 
 /* ===================== BLOQUES Y SENTENCIAS ===================== */
 
 
-bloque ::= OPEN_BRACE lista_sentencias_opt CLOSE_BRACE ;
+bloque ::= OPEN_BRACE 
+    {: 
+        tablaSimbolos.enterScope(); 
+        System.out.println(">> Entrando a nuevo ámbito");
+    :}
+    lista_sentencias_opt 
+    CLOSE_BRACE
+    {:
+        tablaSimbolos.exitScope(); 
+        System.out.println("<< Saliendo de ámbito");
+    :};
 
 lista_sentencias_opt ::= /* vacío */ | lista_sentencias ;
 
@@ -129,7 +167,15 @@ sent_decl_local ::= LET decl_var SEMICOLON;
 
 decl_var ::= decl_var_simple | decl_var_arreglo;
 
-decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valor_opt ;
+decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt {:
+    String nombre = (String) id;       
+    String tipoVar = (String) tipo;    
+    if (!tablaSimbolos.addSymbol(nombre, tipoVar, "variable", null)) {
+        System.err.println("Error semantico: variable " + nombre + " ya declarada.");
+    } else {
+        System.out.println("Variable agregada: " + nombre + " (" + tipoVar + ")");
+    }
+:};
 
 decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
 
@@ -275,11 +321,6 @@ lista_elem_arr ::= lista_elem_arr COMMA expr | expr;
 sentencia ::= error SEMICOLON
     {: 
         System.err.println("Recuperado de error: se omite hasta '$'");
-    :};
-
-bloque ::= OPEN_BRACE error CLOSE_BRACE
-    {: 
-        System.err.println("Error dentro del bloque, se recuperó al cerrar 'э'");
     :};
 
 decl ::= error SEMICOLON

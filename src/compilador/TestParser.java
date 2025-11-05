@@ -50,6 +50,9 @@ public class TestParser {
                 }
                 System.out.println("\nEl archivo no puede ser generado por la gramatica.\n");
             }
+
+            System.out.println("Tabla de Símbolos:");
+            Parser.tablaSimbolos.printTable();
             
 
         } catch (Exception e) {

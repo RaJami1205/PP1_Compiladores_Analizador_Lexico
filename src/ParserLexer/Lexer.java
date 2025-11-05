@@ -1069,7 +1069,7 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 103: break;
           case 42:
-            { return symbol(sym.INT);
+            { return symbol(sym.INT, "int");
             }
           // fall through
           case 104: break;
@@ -1079,12 +1079,12 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 105: break;
           case 44:
-            { return symbol(sym.BOOL);
+            { return symbol(sym.BOOL, "bool");
             }
           // fall through
           case 106: break;
           case 45:
-            { return symbol(sym.CHAR);
+            { return symbol(sym.CHAR, "char");
             }
           // fall through
           case 107: break;
@@ -1129,7 +1129,7 @@ public class Lexer implements java_cup.runtime.Scanner {
           // fall through
           case 115: break;
           case 54:
-            { return symbol(sym.FLOAT);
+            { return symbol(sym.FLOAT, "float");
             }
           // fall through
           case 116: break;
