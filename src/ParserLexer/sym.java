@@ -12,7 +12,6 @@ public class sym {
   public static final int WHEN = 23;
   public static final int OPEN_PAREN = 52;
   public static final int STRING_LITERAL = 6;
-  public static final int FUNCTION = 16;
   public static final int INCREMENT = 50;
   public static final int MULT = 42;
   public static final int CHAR = 11;
@@ -25,7 +24,7 @@ public class sym {
   public static final int DECREMENT = 51;
   public static final int MINUS = 41;
   public static final int FOR = 24;
-  public static final int PRINCIPAL = 15;
+  public static final int PRINCIPAL = 16;
   public static final int SEMICOLON = 61;
   public static final int AND = 47;
   public static final int LT = 34;
@@ -56,18 +55,19 @@ public class sym {
   public static final int ELSE = 19;
   public static final int COMMENT_MULTI = 63;
   public static final int TO = 26;
-  public static final int LET = 13;
+  public static final int LET = 14;
   public static final int FLOAT = 10;
   public static final int NE = 39;
   public static final int END = 20;
   public static final int INT_DIV = 44;
+  public static final int STRING = 13;
   public static final int CLOSE_BRACE = 55;
   public static final int DOWNTO = 27;
   public static final int COMMENT_LINE = 62;
   public static final int FLOAT_LITERAL = 4;
   public static final int FALSE = 8;
   public static final int GT = 36;
-  public static final int PROCEDURE = 14;
+  public static final int PROCEDURE = 15;
   public static final int DO = 28;
   public static final int STEP = 25;
   public static final int INTEGER_LITERAL = 3;
@@ -86,10 +86,10 @@ public class sym {
   "FLOAT",
   "CHAR",
   "BOOL",
+  "STRING",
   "LET",
   "PROCEDURE",
   "PRINCIPAL",
-  "FUNCTION",
   "DECIDE",
   "OF",
   "ELSE",

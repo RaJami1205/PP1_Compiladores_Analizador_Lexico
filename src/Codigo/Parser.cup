@@ -49,10 +49,10 @@ terminal Character CHAR_LITERAL;
 terminal String STRING_LITERAL;
 terminal Boolean TRUE, FALSE;
 
-terminal String INT, FLOAT, CHAR, BOOL;
+terminal String INT, FLOAT, CHAR, BOOL, STRING;
 
 terminal 
-    LET, PROCEDURE, PRINCIPAL, FUNCTION,
+    LET, PROCEDURE, PRINCIPAL,
     DECIDE, OF, ELSE, END, LOOP, EXIT, WHEN, FOR, STEP, TO, DOWNTO, DO,
     RETURN, BREAK, INPUT, OUTPUT,
     ASSIGN, LT, LE, GT, GE, EQ, NE, PLUS, MINUS, MULT, DIV, INT_DIV, MOD, POW,
@@ -82,6 +82,8 @@ precedence left MULT, DIV, INT_DIV, MOD;
 precedence right POW;
 precedence right SIGMA; 
 
+nonassoc OPEN_BRACKET, CLOSE_BRACKET;
+
 start with programa;
 
 programa ::= lista_decl;
@@ -97,7 +99,7 @@ principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque
         System.out.println("Procedimiento principal terminado."); 
     :};
  
-funcion ::= FUNCTION IDENTIFIER:id OPEN_PAREN param_formales_opt CLOSE_PAREN tipo_ret:ret bloque
+funcion ::= tipo_ret:ret IDENTIFIER:id OPEN_PAREN param_formales_opt CLOSE_PAREN tipo_ret:ret bloque
     {:
         tablaSimbolos.addSymbol((String)id, (String)ret, "function", null);
         System.out.println("Función agregada: " + id + " -> tipo " + ret);
@@ -113,12 +115,14 @@ tipo_ret ::= INT   {: RESULT = "int"; :}
             | FLOAT {: RESULT = "float"; :}
             | CHAR  {: RESULT = "char"; :}
             | BOOL  {: RESULT = "bool"; :}
+            | STRING {: RESULT = "string"; :}
             ;
 
 tipo ::= INT   {: RESULT = "int"; :}
        | FLOAT {: RESULT = "float"; :}
        | CHAR  {: RESULT = "char"; :}
        | BOOL  {: RESULT = "bool"; :}
+       | STRING {: RESULT = "string"; :}
        | tipo_arreglo {: RESULT = "array"; :}
        ;
 
@@ -187,10 +191,9 @@ init_arr_opt ::=   /*vacio*/ |ASSIGN lit_arreglo;
 asignacion ::= lvalue ASSIGN expr ;
 
 
-lvalue ::= IDENTIFIER lvalue_aux;
-
-lvalue_aux::= /*vacio*/ | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET ;
-
+lvalue ::= IDENTIFIER
+          | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET
+          ;
 
 
 expr_sin_asignacion ::= expr ;

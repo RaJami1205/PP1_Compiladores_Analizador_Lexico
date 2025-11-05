@@ -35,7 +35,7 @@ IntegerLiteral = {Digito}+
 FloatLiteral = {Digito}+ "." {Digito}+
 CharLiteral = "'" [^'] "'"
 StringLiteral = "\"" [^\"]* "\""
-Identifier = [a-zA-Z] [a-zA-Z0-9_]*
+Identifier = [a-zA-Z_] [a-zA-Z0-9_]*
 
 
 %%
@@ -45,11 +45,11 @@ Identifier = [a-zA-Z] [a-zA-Z0-9_]*
     "let"              { return symbol(sym.LET); }
     "procedure"        { return symbol(sym.PROCEDURE); }
     "principal"        { return symbol(sym.PRINCIPAL); }
-    "function"         { return symbol(sym.FUNCTION); }
     "int"              { return symbol(sym.INT, "int"); }
     "float"            { return symbol(sym.FLOAT, "float"); }
     "char"             { return symbol(sym.CHAR, "char"); }
     "bool"             { return symbol(sym.BOOL, "bool"); }
+    "string"           { return symbol(sym.STRING, "string"); }
     "true"             { return symbol(sym.TRUE); }
     "false"            { return symbol(sym.FALSE); }
     "decide"           { return symbol(sym.DECIDE); }
