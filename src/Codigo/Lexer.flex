@@ -35,7 +35,7 @@ IntegerLiteral = {Digito}+
 FloatLiteral = {Digito}+ "." {Digito}+
 CharLiteral = "'" [^'] "'"
 StringLiteral = "\"" [^\"]* "\""
-Identifier = [a-zA-Z_] [a-zA-Z0-9_]*
+Identifier = [_]*[a-zA-Z][a-zA-Z0-9_]*
 
 
 %%
