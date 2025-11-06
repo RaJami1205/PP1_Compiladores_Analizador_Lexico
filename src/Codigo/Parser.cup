@@ -82,7 +82,7 @@ precedence left MULT, DIV, INT_DIV, MOD;
 precedence right POW;
 precedence right SIGMA; 
 
-nonassoc OPEN_BRACKET, CLOSE_BRACKET;
+
 
 start with programa;
 
@@ -94,15 +94,28 @@ decl ::= decl_glob | funcion | principal ; // para evitar ambiguedades
 
 decl_glob ::= LET decl_var SEMICOLON ;
 
-principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN bloque 
+principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN  
     {: 
-        System.out.println("Procedimiento principal terminado."); 
+        tablaSimbolos.enterScope();
+        System.out.println(">> Entrando a ámbito del procedimiento principal");
+
+    :}
+    bloque
+    {:
+        tablaSimbolos.exitScope();
+        System.out.println("<< Saliendo del ámbito del procedimiento principal");
     :};
  
-funcion ::= tipo_ret:ret IDENTIFIER:id OPEN_PAREN param_formales_opt CLOSE_PAREN tipo_ret:ret bloque
+funcion ::= tipo_ret:ret IDENTIFIER:id OPEN_PAREN param_formales_opt CLOSE_PAREN tipo_ret:ret
     {:
         tablaSimbolos.addSymbol((String)id, (String)ret, "function", null);
         System.out.println("Función agregada: " + id + " -> tipo " + ret);
+        tablaSimbolos.enterScope();
+    :}
+    bloque
+    {:
+        tablaSimbolos.exitScope();
+        System.out.println("<< Saliendo de ambito de funcion " + id);
     :};
             
 param_formales_opt ::= /* vacío */ | lista_params ; 
@@ -135,17 +148,7 @@ tam_arreglo ::= INTEGER_LITERAL ;
 /* ===================== BLOQUES Y SENTENCIAS ===================== */
 
 
-bloque ::= OPEN_BRACE 
-    {: 
-        tablaSimbolos.enterScope(); 
-        System.out.println(">> Entrando a nuevo ámbito");
-    :}
-    lista_sentencias_opt 
-    CLOSE_BRACE
-    {:
-        tablaSimbolos.exitScope(); 
-        System.out.println("<< Saliendo de ámbito");
-    :};
+bloque ::= OPEN_BRACE lista_sentencias_opt CLOSE_BRACE;
 
 lista_sentencias_opt ::= /* vacío */ | lista_sentencias ;
 
@@ -191,20 +194,32 @@ init_arr_opt ::=   /*vacio*/ |ASSIGN lit_arreglo;
 asignacion ::= lvalue ASSIGN expr ;
 
 
-lvalue ::= IDENTIFIER
-          | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET
-          ;
+lvalue ::= IDENTIFIER lvalue_aux;
+          
+
+lvalue_aux::= /*vacio*/ | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET;
 
 
 expr_sin_asignacion ::= expr ;
 
 sent_asig_o_expr ::= asignacion SEMICOLON
-                  | expr_sin_asignacion SEMICOLON
-                  ;
+                  | expr_sin_asignacion SEMICOLON;
 
 /* ===================== ESTRUCTURAS DE CONTROL ====================*/
 
-sent_decide ::= DECIDE OF OPEN_PAREN cond_bool CLOSE_PAREN ARROW bloque sent_decide_rec END DECIDE SEMICOLON ;
+sent_decide ::= 
+    DECIDE OF OPEN_PAREN cond_bool CLOSE_PAREN ARROW
+    {:
+        tablaSimbolos.enterScope();
+        System.out.println(">> Entrando a ambito DECIDE");
+    :}
+    bloque sent_decide_rec 
+    END DECIDE SEMICOLON
+    {:
+        tablaSimbolos.exitScope();
+        System.out.println("<< Saliendo de ambito DECIDE");
+    :};
+
 
 sent_decide_rec ::=
       OPEN_PAREN cond_bool CLOSE_PAREN ARROW bloque sent_decide_rec
@@ -212,11 +227,34 @@ sent_decide_rec ::=
     | /* vacío */
     ;
 
-sent_loop ::= LOOP sent_loop_rec EXIT WHEN cond_bool SEMICOLON END LOOP SEMICOLON ;
+
+sent_loop ::= 
+    LOOP
+    {:
+        tablaSimbolos.enterScope();
+        System.out.println(">> Entrando a ambito LOOP");
+    :}
+    sent_loop_rec EXIT WHEN cond_bool SEMICOLON END LOOP SEMICOLON
+    {:
+        tablaSimbolos.exitScope();
+        System.out.println("<< Saliendo de ambito LOOP");
+    :};
+
 
 sent_loop_rec ::= sentencia sent_loop_rec | /* vacío */ ;
 
-sent_for ::= FOR asignacion STEP valor_step for_dir expr DO bloque ;
+sent_for ::= 
+    FOR 
+    {:
+        tablaSimbolos.enterScope();
+        System.out.println(">> Entrando a ambito FOR");
+    :}
+    asignacion STEP valor_step for_dir expr DO bloque
+    {:
+        tablaSimbolos.exitScope();
+        System.out.println("<< Saliendo de ambito FOR");
+    :};
+
 
 for_dir ::= TO | DOWNTO ;
 
