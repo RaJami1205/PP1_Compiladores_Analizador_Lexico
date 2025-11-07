@@ -4,8 +4,9 @@ let bool es_valido = true$
 
 procedure principalєэ ¿
     outputє"¡Hola Mundo!"э$
-    outputє"Número:"э, numero$
-    outputє"Inicial:"э, inicial$
+    outputє"Número:"э$
+    outputє"Inicial:"э$
+    let int x = 5 $
     
     decide of єes_validoэ -> ¿
         outputє"Es válido"э$

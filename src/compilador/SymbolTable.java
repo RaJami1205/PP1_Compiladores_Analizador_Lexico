@@ -36,8 +36,10 @@ public class SymbolTable {
 
     /** Entra en un nuevo ámbito */
     public void enterScope() {
+        System.out.println(scopeStack.peek());
         currentScope++;
         scopeStack.push(currentScope);
+        
     }
 
     /** Sale del ámbito actual */

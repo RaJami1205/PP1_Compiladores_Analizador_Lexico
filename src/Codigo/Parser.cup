@@ -3,6 +3,7 @@ import java_cup.runtime.*;
 import Compilador.SymbolTable;
 
 parser code {:
+    
     Lexer lex;
     public static java.util.List<String> errores = new java.util.ArrayList<>();
     public static SymbolTable tablaSimbolos = new SymbolTable();
@@ -96,6 +97,12 @@ decl_glob ::= LET decl_var SEMICOLON ;
 
 principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN  
     {: 
+        if (!tablaSimbolos.addSymbol("principal", "void", "procedure", null)) {
+                System.err.println("Error: El procedimiento principal ya esta declarado.");
+        } else {
+                System.out.println("Procedimiento principal agregado a la tabla de símbolos (tipo void).");
+        }
+
         tablaSimbolos.enterScope();
         System.out.println(">> Entrando a ámbito del procedimiento principal");
 
@@ -106,12 +113,14 @@ principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN
         System.out.println("<< Saliendo del ámbito del procedimiento principal");
     :};
  
-funcion ::= tipo_ret:ret IDENTIFIER:id OPEN_PAREN param_formales_opt CLOSE_PAREN tipo_ret:ret
+funcion ::= tipo_ret:ret IDENTIFIER:id 
     {:
+        tablaSimbolos.enterScope();
         tablaSimbolos.addSymbol((String)id, (String)ret, "function", null);
         System.out.println("Función agregada: " + id + " -> tipo " + ret);
-        tablaSimbolos.enterScope();
+        
     :}
+    OPEN_PAREN param_formales_opt CLOSE_PAREN
     bloque
     {:
         tablaSimbolos.exitScope();
@@ -122,7 +131,15 @@ param_formales_opt ::= /* vacío */ | lista_params ;
 
 lista_params ::= lista_params COMMA param | param;
 
-param ::= IDENTIFIER COLON tipo ;
+param ::= IDENTIFIER:id COLON tipo:tipoParam
+        {:
+            if(!tablaSimbolos.addSymbol((String)id,(String)tipoParam,"param",null))
+            {
+                System.out.println("YA EXISTE PARAMETRO CON ESE NOMBRE");
+        
+            };
+        :}
+ ;
 
 tipo_ret ::= INT   {: RESULT = "int"; :}
             | FLOAT {: RESULT = "float"; :}
@@ -195,7 +212,6 @@ asignacion ::= lvalue ASSIGN expr ;
 
 
 lvalue ::= IDENTIFIER lvalue_aux;
-          
 
 lvalue_aux::= /*vacio*/ | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET;
 

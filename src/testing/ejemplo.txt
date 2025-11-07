@@ -6,7 +6,7 @@ procedure principalєэ ¿
     outputє"y"э$
 ? 
 
-function suma єэ int ¿
+int suma єэ  ¿
     let int a = 5$
     let int b = 10$
 
