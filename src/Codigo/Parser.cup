@@ -508,10 +508,27 @@ sent_break ::= BREAK SEMICOLON ;
 
 /* ===================== I/O ===================== */
 
-sent_io ::= OUTPUT OPEN_PAREN lista_out:arg CLOSE_PAREN SEMICOLON {:
-    codigoIntermedio.add("PRINT", (String)arg, null, null);
-    System.out.println("OUTPUT -> " + arg);
-:};
+sent_io ::=
+      OUTPUT OPEN_PAREN lista_out:arg CLOSE_PAREN SEMICOLON
+      {:
+          // Generar cuádruplo de impresión
+          codigoIntermedio.add("PRINT", (String)arg, null, null);
+          System.out.println("OUTPUT -> " + arg);
+      :}
+    | INPUT OPEN_PAREN IDENTIFIER:id CLOSE_PAREN SEMICOLON
+      {:
+          String varName = (String) id;
+          Compilador.MySymbol sym = tablaSimbolos.getSymbol(varName);
+          if (sym == null) {
+              String msg = "Error semántico: variable no declarada '" + varName + "' en INPUT.";
+              errores.add(msg);
+              System.err.println(msg);
+          } else {
+              // Generar cuádruplo de lectura
+              codigoIntermedio.add("READ", null, null, varName);
+              System.out.println("INPUT -> " + varName);
+          }
+      :};
 
 lista_out ::=
       lista_out:prev COMMA expr:val
@@ -596,7 +613,7 @@ expr_mult ::= expr_mult MULT expr_pot
             | expr_pot:val {: RESULT = val; :}
             ;
 
-expr_pot ::= expr_unaria:val {: RESULT = val; :};
+expr_pot ::= expr_unaria POW expr_pot | expr_unaria ;
 
 expr_unaria ::= op_unario expr_unaria {: RESULT = null; :}
               | expr_postfijo:val {: RESULT = val; :}
