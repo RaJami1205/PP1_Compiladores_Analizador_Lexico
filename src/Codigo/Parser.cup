@@ -1,12 +1,22 @@
 package ParserLexer;
+
 import java_cup.runtime.*;
+import Compilador.MySymbol;
 import Compilador.SymbolTable;
+import Compilador.IntermediateCode;
+import Compilador.GenerateTemp;
+import Compilador.GenerateLabel;
 
 parser code {:
     
     Lexer lex;
     public static java.util.List<String> errores = new java.util.ArrayList<>();
     public static SymbolTable tablaSimbolos = new SymbolTable();
+    public static IntermediateCode codigoIntermedio = new IntermediateCode();
+    GenerateTemp genTemp = new GenerateTemp();
+    GenerateLabel genLabel = new GenerateLabel();
+    private static String[] decideLabels = null;
+    private static String[] parserLoopLabels = null;
 
     @SuppressWarnings("deprecation")
     public Parser(Lexer lex) {
@@ -14,27 +24,101 @@ parser code {:
         this.symbolFactory = new DefaultSymbolFactory();
     }
 
-    @Override
     public void report_error(String message, Object info) {
         errores.add("Error sintáctico: " + message + " en " + info);
         System.err.println("Error sintáctico: " + message + " en " + info);
     }
 
-    @Override
     public void syntax_error(Symbol cur_token) {
-        errores.add("Token inesperado '" + cur_token.value + 
-                    "' en línea " + (cur_token.left+1) + 
-                    ", columna " + (cur_token.right+1));
-        System.err.println("Token inesperado '" + cur_token.value + 
-                           "' en línea " + (cur_token.left+1) + 
-                           ", columna " + (cur_token.right+1));
+        Object value = cur_token.value;
+        int left = cur_token.left;
+        int right = cur_token.right;
+        errores.add("Token inesperado '" + value + 
+                    "' en línea " + (left + 1) + 
+                    ", columna " + (right + 1));
+        System.err.println("Token inesperado '" + value + 
+                        "' en línea " + (left + 1) + 
+                        ", columna " + (right + 1));
     }
 
-    @Override
     public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
-        errores.add("Error no recuperable: " + cur_token.value);
-        System.err.println("Error no recuperable: " + cur_token.value);
+        Object value = cur_token.value;
+        errores.add("Error no recuperable: " + value);
+        System.err.println("Error no recuperable: " + value);
     }
+
+    private String inferTypeOfOperand(String op) {
+        if (op == null) return "int";
+
+        op = op.trim();
+
+        if (op.equalsIgnoreCase("true") || op.equalsIgnoreCase("false")) {
+            return "bool";
+        }
+
+        if (op.length() >= 3 && op.startsWith("'") && op.endsWith("'")) {
+            return "char";
+        }
+
+        if (op.length() >= 2 && op.startsWith("\"") && op.endsWith("\"")) {
+            return "string";
+        }
+
+        try {
+            Integer.parseInt(op);
+            return "int";
+        } catch (NumberFormatException e) {}
+
+        try {
+            Double.parseDouble(op);
+            if (op.contains(".")) return "float";
+            return "int";
+        } catch (NumberFormatException e) {}
+
+        MySymbol s = tablaSimbolos.getSymbol(op);
+        if (s != null && s.getType() != null) {
+            return s.getType();
+        }
+
+
+        return "int";
+    }
+
+    private MySymbol createTempFor(String type) {
+        String t = GenerateTemp.newTemp();
+        // guardar en tabla (en alcance actual)
+        tablaSimbolos.addSymbol(t, type, "temp", null);
+        MySymbol tempSym = tablaSimbolos.getSymbol(t);
+        if (tempSym != null) {
+            tempSym.setAddress(t);
+            tempSym.setTemporary(true);
+        }
+        return tempSym;
+    }
+
+    private boolean tiposCompatibles(String tipoDestino, String tipoFuente) {
+    if (tipoDestino == null || tipoFuente == null) return true; // evitar errores en nulos
+
+    // Normalizar a minúsculas
+    tipoDestino = tipoDestino.toLowerCase();
+    tipoFuente = tipoFuente.toLowerCase();
+
+    // Mismos tipos siempre compatibles
+    if (tipoDestino.equals(tipoFuente)) return true;
+
+    // Compatibilidades numéricas (ej: int = float es válido)
+    if ((tipoDestino.equals("float") && tipoFuente.equals("int")) ||
+        (tipoDestino.equals("int") && tipoFuente.equals("float"))) {
+        return true;
+    }
+
+    // No se permiten asignaciones de bool, char o string a int o float
+    if (tipoDestino.equals("bool") || tipoDestino.equals("char") || tipoDestino.equals("string"))
+        return tipoDestino.equals(tipoFuente);
+
+    // Si nada coincide
+    return false;
+}
 :}
 
 init with {: :};
@@ -120,7 +204,7 @@ funcion ::=
         if (!tablaSimbolos.addSymbol(nombre, tipoRet, "function", null)) {
             System.err.println("Error semántico: función duplicada " + nombre);
         } else {
-            Compilador.Symbol s = tablaSimbolos.getSymbol(nombre);
+            Compilador.MySymbol s = tablaSimbolos.getSymbol(nombre);
             s.setReturnType(tipoRet);
             System.out.println("Función agregada: " + s);
         }
@@ -213,10 +297,23 @@ decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valorInit {:
     String tipoVar = (String) tipo;    
     Object valor = valorInit;
 
+    // Inferir tipo del valor (si existe inicialización)
+    String tipoValor = null;
+    if (valor != null) {
+        tipoValor = inferTypeOfOperand(valor.toString());
+
+        if (!tiposCompatibles(tipoVar, tipoValor)) {
+            String msg = "Error semántico: tipo incompatible en '" + nombre + 
+                         "'. Esperado " + tipoVar + " pero se encontró " + tipoValor;
+            System.err.println(msg);
+            errores.add(msg);
+        }
+    }
+
     if (!tablaSimbolos.addSymbol(nombre, tipoVar, "variable", valor)) {
         System.err.println("Error semántico: variable " + nombre + " ya declarada.");
     } else {
-        Compilador.Symbol s = tablaSimbolos.getSymbol((String) id);
+        Compilador.MySymbol s = tablaSimbolos.getSymbol((String) id);
         s.setAddress(nombre);  
         s.setOffset(0);       
         System.out.println("Variable agregada: " + s);
@@ -235,12 +332,30 @@ init_arr_opt ::=   /*vacio*/ |ASSIGN lit_arreglo;
  
 
 asignacion ::= IDENTIFIER:id ASSIGN expr:valor {:
-    boolean ok = tablaSimbolos.updateValue((String)id, valor);
-    if (!ok) {
-        System.err.println("Error: variable " + id + " no declarada.");
+    String dest = (String) id;
+    String src = (String) valor;
+
+    MySymbol varDest = tablaSimbolos.getSymbol(dest);
+    if (varDest == null) {
+        String msg = "Error semántico: variable no declarada '" + dest + "'";
+        System.err.println(msg);
+        errores.add(msg);
     } else {
-        System.out.println("Asignación: " + id + " = " + valor);
+        String tipoDest = varDest.getType();
+        String tipoSrc = inferTypeOfOperand(src);
+
+        if (!tiposCompatibles(tipoDest, tipoSrc)) {
+            String msg = "Error semántico: tipos incompatibles en asignación '" +
+                         dest + " = " + src + "' (" + tipoDest + " ← " + tipoSrc + ")";
+            System.err.println(msg);
+            errores.add(msg);
+        }
     }
+
+    // generar cuadruplo de asignación
+    codigoIntermedio.add("=", src, null, dest);
+    tablaSimbolos.updateValue(dest, src);
+    System.out.println("Asignación: " + dest + " = " + src);
 :};
 
 
@@ -256,37 +371,104 @@ sent_asig_o_expr ::= asignacion SEMICOLON
 
 /* ===================== ESTRUCTURAS DE CONTROL ====================*/
 
-sent_decide ::= 
-    DECIDE OF OPEN_PAREN cond_bool CLOSE_PAREN ARROW
+sent_decide ::=
+    DECIDE OF OPEN_PAREN cond_bool:cond CLOSE_PAREN ARROW
     {:
         tablaSimbolos.enterScope();
-        System.out.println(">> Entrando a ambito DECIDE");
+        System.out.println(">> Entrando a ámbito DECIDE");
+
+        // Crear nuevas etiquetas
+        String Lfalse = GenerateLabel.newLabel();
+        String Lend = GenerateLabel.newLabel();
+
+        // Guardar globalmente para uso del else
+        decideLabels = new String[]{Lfalse, Lend};
+
+        // Generar salto condicional: si cond es falso, ir a Lfalse
+        codigoIntermedio.add("IF_FALSE", (String)cond, null, Lfalse);
     :}
-    bloque sent_decide_rec 
+    bloque:bloqueTrue sent_decide_rec
     END DECIDE SEMICOLON
     {:
+        if (decideLabels != null) {
+            String Lend = decideLabels[1];
+            // Colocar etiqueta final
+            codigoIntermedio.add("LABEL", Lend, null, null);
+            decideLabels = null; // limpiar después del decide
+        }
+
         tablaSimbolos.exitScope();
-        System.out.println("<< Saliendo de ambito DECIDE");
+        System.out.println("<< Saliendo de ámbito DECIDE");
     :};
 
-
 sent_decide_rec ::=
-      OPEN_PAREN cond_bool CLOSE_PAREN ARROW bloque sent_decide_rec
-    | ELSE ARROW bloque
-    | /* vacío */
-    ;
+      ELSE ARROW bloque:bloqueFalse
+      {:
+          if (decideLabels == null) {
+              System.err.println("Error interno: decideLabels es null en ELSE");
+          } else {
+              String Lfalse = decideLabels[0];
+              String Lend = decideLabels[1];
 
+              // Salto incondicional al final del decide (después del bloque true)
+              codigoIntermedio.add("GOTO", null, null, Lend);
+
+              // Etiqueta del bloque else
+              codigoIntermedio.add("LABEL", Lfalse, null, null);
+          }
+      :}
+    | /* vacío */
+      {:
+          // Sin bloque else
+      :};
 
 sent_loop ::= 
     LOOP
     {:
         tablaSimbolos.enterScope();
-        System.out.println(">> Entrando a ambito LOOP");
+        System.out.println(">> Entrando a ámbito LOOP");
+
+        // Crear etiquetas de inicio y salida del bucle
+        String startLabel = GenerateLabel.newLabel();
+        String exitLabel = GenerateLabel.newLabel();
+
+        // Guardar en símbolos globales para usar con "exit when"
+        parserLoopLabels = new String[]{startLabel, exitLabel};
+
+        // Emitir etiqueta de inicio
+        codigoIntermedio.add("LABEL", startLabel, null, null);
     :}
-    sent_loop_rec EXIT WHEN cond_bool SEMICOLON END LOOP SEMICOLON
+    sent_loop_rec
+    EXIT WHEN cond_bool:cond SEMICOLON
     {:
+        // Obtener etiquetas del bucle
+        String[] labels = parserLoopLabels;
+        if (labels != null) {
+            String exitLabel = labels[1];
+            // Generar salto condicional de salida
+            codigoIntermedio.add("IF_TRUE", (String)cond, null, exitLabel);
+        } else {
+            System.err.println("Error interno: etiquetas del bucle no inicializadas.");
+        }
+    :}
+    END LOOP SEMICOLON
+    {:
+        // Obtener etiquetas del bucle
+        String[] labels = parserLoopLabels;
+        if (labels != null) {
+            String startLabel = labels[0];
+            String exitLabel = labels[1];
+
+            // Volver al inicio del bucle
+            codigoIntermedio.add("GOTO", null, null, startLabel);
+
+            // Emitir etiqueta de salida
+            codigoIntermedio.add("LABEL", exitLabel, null, null);
+        }
+
+        parserLoopLabels = null;
         tablaSimbolos.exitScope();
-        System.out.println("<< Saliendo de ambito LOOP");
+        System.out.println("<< Saliendo de ámbito LOOP");
     :};
 
 
@@ -311,17 +493,31 @@ valor_step ::= INTEGER_LITERAL | FLOAT_LITERAL ;
 
 /* ===================== RETURN / BREAK ===================== */
 
-sent_return ::= RETURN expr SEMICOLON| RETURN SEMICOLON ;
+sent_return ::= RETURN expr:val SEMICOLON
+  {:
+      codigoIntermedio.add("RETURN", (String)val, null, null);
+      System.out.println("RETURN -> " + val);
+  :}
+  | RETURN SEMICOLON
+  {:
+      codigoIntermedio.add("RETURN", null, null, null);
+      System.out.println("RETURN sin valor");
+  :};
 
 sent_break ::= BREAK SEMICOLON ;
 
 /* ===================== I/O ===================== */
 
-sent_io ::= INPUT OPEN_PAREN IDENTIFIER CLOSE_PAREN SEMICOLON
-          | OUTPUT OPEN_PAREN lista_out CLOSE_PAREN SEMICOLON
-          ;
+sent_io ::= OUTPUT OPEN_PAREN lista_out:arg CLOSE_PAREN SEMICOLON {:
+    codigoIntermedio.add("PRINT", (String)arg, null, null);
+    System.out.println("OUTPUT -> " + arg);
+:};
 
-lista_out ::= lista_out COMMA expr | expr;
+lista_out ::=
+      lista_out:prev COMMA expr:val
+        {: RESULT = prev + ", " + (String)val; :}
+    | expr:val
+        {: RESULT = (String)val; :};
 
 /* ===================== EXPRESIONES ===================== */
 
@@ -337,17 +533,57 @@ expr_log_and ::= expr_log_and AND expr_rel
                | expr_rel:val {: RESULT = val; :}
                ;
 
-expr_rel ::= expr_aditiva:val1 op_rel expr_aditiva:val2
-           {: RESULT = true; :} // igual: no evaluamos aún, pero evita null
-           | expr_aditiva:val {: RESULT = val; :}
-           ;
+expr_rel ::=
+      expr_aditiva:val1 op_rel:op expr_aditiva:val2
+      {:
+          String op1 = (String) val1;
+          String op2 = (String) val2;
+          String oprel = (String) op;
 
-expr_aditiva ::= expr_aditiva PLUS expr_mult
-               {: RESULT = null; :}
-               | expr_aditiva MINUS expr_mult
-               {: RESULT = null; :}
-               | expr_mult:val {: RESULT = val; :}
-               ;
+          // crear temporal booleano
+          MySymbol tmp = createTempFor("bool");
+          String t = tmp.getAddress();
+
+          codigoIntermedio.add(oprel, op1, op2, t);
+          RESULT = t;
+      :}
+    | expr_aditiva:val {: RESULT = val; :}
+    ;
+
+op_rel ::= 
+      LT   {: RESULT = "<"; :}
+    | LE   {: RESULT = "<="; :}
+    | GT   {: RESULT = ">"; :}
+    | GE   {: RESULT = ">="; :}
+    | EQ   {: RESULT = "=="; :}
+    | NE   {: RESULT = "!="; :}
+    ;
+
+expr_aditiva ::=
+      expr_aditiva:e1 PLUS expr_mult:e2
+        {:
+            String op1 = (String) e1;
+            String op2 = (String) e2;
+            // inferir tipo para el temporal
+            String tipo = inferTypeOfOperand(op1);
+            if (tipo.equals("int") == false) tipo = inferTypeOfOperand(op2); // intento simple
+            MySymbol tmpSym = createTempFor(tipo);
+            String tname = tmpSym.getAddress();
+            codigoIntermedio.add("+", op1, op2, tname);
+            RESULT = tname;
+        :}
+    | expr_aditiva:e1 MINUS expr_mult:e2
+        {:
+            String op1 = (String) e1;
+            String op2 = (String) e2;
+            String tipo = inferTypeOfOperand(op1);
+            MySymbol tmpSym = createTempFor(tipo);
+            String tname = tmpSym.getAddress();
+            codigoIntermedio.add("-", op1, op2, tname);
+            RESULT = tname;
+        :}
+    | expr_mult:val {: RESULT = val; :}
+    ;
 
 expr_mult ::= expr_mult MULT expr_pot
             {: RESULT = null; :}
@@ -366,13 +602,25 @@ expr_unaria ::= op_unario expr_unaria {: RESULT = null; :}
               | expr_postfijo:val {: RESULT = val; :}
               ;
 
+op_unario ::= SIGMA | MINUS;
+
 expr_postfijo ::= primario:val {: RESULT = val; :};
 
-primario ::= lit:val {: RESULT = val; :}
-           | lvalue {: RESULT = null; :}
-           | llamada_func {: RESULT = null; :}
-           | OPEN_PAREN expr:val CLOSE_PAREN {: RESULT = val; :}
-           ;
+postfix_op ::= INCREMENT | DECREMENT | OPEN_BRACKET expr CLOSE_BRACKET ;
+
+primario ::=
+      lit:val
+        {: RESULT = val; :}
+    | IDENTIFIER:id
+        {:
+            // devolver el nombre de la variable directamente
+            RESULT = (String) id;
+        :}
+    | llamada_func
+        {: RESULT = null; :}
+    | OPEN_PAREN expr:val CLOSE_PAREN
+        {: RESULT = val; :}
+    ;
 
 llamada_func ::= 
       IDENTIFIER OPEN_PAREN lista_args_opt CLOSE_PAREN
@@ -382,18 +630,26 @@ lista_args_opt ::= /* vacío */ | lista_args ;
 
 lista_args ::=  lista_args  COMMA expr | expr ;
 
-cond_bool ::= expr ;
+cond_bool ::=
+    expr:val
+    {:
+        if (val == null) {
+            RESULT = "true"; // fallback: por defecto
+        } else {
+            RESULT = val.toString();
+        }
+    :};
 
 
 /* ===================== LITERALES ===================== */
 
 lit ::=
-      INTEGER_LITERAL:val     {: RESULT = val; :}
-    | FLOAT_LITERAL:val       {: RESULT = val; :}
-    | TRUE                    {: RESULT = true; :}
-    | FALSE                   {: RESULT = false; :}
-    | CHAR_LITERAL:val        {: RESULT = val; :}
-    | STRING_LITERAL:val      {: RESULT = val; :}
+      INTEGER_LITERAL:val     {: RESULT = val.toString(); :}
+    | FLOAT_LITERAL:val       {: RESULT = val.toString(); :}
+    | TRUE                    {: RESULT = "true"; :}
+    | FALSE                   {: RESULT = "false"; :}
+    | CHAR_LITERAL:val        {: RESULT = "'" + val.toString() + "'"; :} // o val.toString()
+    | STRING_LITERAL:val      {: RESULT = "\"" + val + "\""; :}
     | lit_arreglo:val         {: RESULT = val; :}
     ;
 

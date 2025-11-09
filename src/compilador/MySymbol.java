@@ -2,19 +2,19 @@ package Compilador;
 
 import java.util.*;
 
-public class Symbol {
-    private String name;           
-    private String type;          
-    private String category;       
-    private int scopeLevel;        
-    private Object value;          
-    private String address;        
-    private boolean isTemporary;   
-    private int offset;            
-    private List<String> paramTypes; 
-    private String returnType;    
+public class MySymbol {
+    public String name;           
+    public String type;          
+    public String category;       
+    public int scopeLevel;        
+    public Object value;          
+    public String address;        
+    public boolean isTemporary;   
+    public int offset;            
+    public List<String> paramTypes; 
+    public String returnType;    
 
-    public Symbol(String name, String type, String category, Object value, int scopeLevel) {
+    public MySymbol(String name, String type, String category, Object value, int scopeLevel) {
         this.name = name;
         this.type = type;
         this.category = category;

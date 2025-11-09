@@ -53,6 +53,7 @@ public class TestParser {
 
             System.out.println("Tabla de Símbolos:");
             Parser.tablaSimbolos.printTable();
+            Parser.codigoIntermedio.printCode();
             
 
         } catch (Exception e) {

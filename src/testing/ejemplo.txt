@@ -1,4 +1,4 @@
-let int x = 5 $
+let int x = 5$
 
 procedure principalєэ ¿ 
     let int y = 10$
@@ -9,6 +9,6 @@ procedure principalєэ ¿
 int suma єэ  ¿
     let int a = 5$
     let int b = 10$
-
     let int resultado = a + b$
+    return resultado$
 ?
