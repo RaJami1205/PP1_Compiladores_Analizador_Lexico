@@ -3,84 +3,80 @@ package Compilador;
 import java.util.*;
 
 public class SymbolTable {
-
-    private static class Symbol {
-        String name;
-        String type;
-        String category; // variable, function, etc.
-        int scope;
-        Object value;
-
-        Symbol(String name, String type, String category, int scope, Object value) {
-            this.name = name;
-            this.type = type;
-            this.category = category;
-            this.scope = scope;
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("[name=%s, type=%s, category=%s, scope=%d, value=%s]",
-                    name, type, category, scope, value);
-        }
-    }
-
-    private final List<Symbol> symbols = new ArrayList<>();
-    private int currentScope = 0;
-    private final Deque<Integer> scopeStack = new ArrayDeque<>();
+    private List<Map<String, Symbol>> scopes;
+    private int currentScope;
 
     public SymbolTable() {
-        scopeStack.push(0); // ámbito global
+        scopes = new ArrayList<>();
+        enterScope(); // ámbito global
     }
 
-    /** Entra en un nuevo ámbito */
     public void enterScope() {
-        System.out.println(scopeStack.peek());
-        currentScope++;
-        scopeStack.push(currentScope);
-        
+        scopes.add(new HashMap<>());
+        currentScope = scopes.size() - 1;
     }
 
-    /** Sale del ámbito actual */
     public void exitScope() {
-        int scopeToRemove = scopeStack.pop();
-        symbols.removeIf(sym -> sym.scope == scopeToRemove);
+        if (!scopes.isEmpty()) {
+            //scopes.remove(scopes.size() - 1);
+            //currentScope = scopes.size() - 1;
+        }
     }
 
-    /** Agrega un símbolo (variable, función, etc.) */
     public boolean addSymbol(String name, String type, String category, Object value) {
-        int scope = scopeStack.peek();
-        for (Symbol sym : symbols) {
-            if (sym.name.equals(name) && sym.scope == scope) {
-                return false; // ya existe en este ámbito
-            }
+        Map<String, Symbol> scope = scopes.get(currentScope);
+        if (scope.containsKey(name)) {
+            return false;
         }
-        symbols.add(new Symbol(name, type, category, scope, value));
+        Symbol sym = new Symbol(name, type, category, value, currentScope);
+        scope.put(name, sym);
         return true;
     }
 
-    /** Busca un símbolo en el ámbito actual o superiores */
-    public Symbol lookup(String name) {
-        for (int i = symbols.size() - 1; i >= 0; i--) {
-            Symbol sym = symbols.get(i);
-            if (sym.name.equals(name)) return sym;
+    public Symbol getSymbol(String name) {
+        for (int i = scopes.size() - 1; i >= 0; i--) {
+            Map<String, Symbol> scope = scopes.get(i);
+            if (scope.containsKey(name))
+                return scope.get(name);
         }
         return null;
     }
 
-    /** Imprime la tabla */
-    public void printTable() {
-        System.out.println("=== TABLA DE SÍMBOLOS ===");
-        Map<Integer, List<Symbol>> grouped = new LinkedHashMap<>();
-        for (Symbol s : symbols) {
-            grouped.computeIfAbsent(s.scope, k -> new ArrayList<>()).add(s);
+    public boolean updateValue(String name, Object value) {
+        Symbol s = getSymbol(name);
+        if (s != null) {
+            s.setValue(value);
+            return true;
         }
-        for (Map.Entry<Integer, List<Symbol>> e : grouped.entrySet()) {
-            System.out.println("Ámbito " + e.getKey() + ":");
-            for (Symbol s : e.getValue()) {
+        return false;
+    }
+
+    private int tempCount = 0;
+
+    public Symbol newTemp(String type) {
+        String tempName = "t" + tempCount++;
+        Symbol temp = new Symbol(tempName, type, "temporal", null, currentScope);
+        temp.setTemporary(true);
+        addSymbol(tempName, type, "temporal", null);
+        return temp;
+    }
+
+    public void setFunctionInfo(String name, List<String> paramTypes, String returnType) {
+        Symbol func = getSymbol(name);
+        if (func != null) {
+            func.setParamTypes(paramTypes);
+            func.setReturnType(returnType);
+        }
+    }
+
+    public void printTable() {
+        System.out.println("========= TABLA DE SÍMBOLOS =========");
+        for (int i = 0; i < scopes.size(); i++) {
+            System.out.println("Ámbito nivel " + i + ":");
+            for (Symbol s : scopes.get(i).values()) {
                 System.out.println("  " + s);
             }
         }
+        System.out.println("=====================================");
     }
 }

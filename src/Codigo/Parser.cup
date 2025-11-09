@@ -91,7 +91,7 @@ programa ::= lista_decl;
 
 lista_decl ::= lista_decl decl | decl;
 
-decl ::= decl_glob | funcion | principal ; // para evitar ambiguedades
+decl ::= decl_glob | funcion | principal ; 
 
 decl_glob ::= LET decl_var SEMICOLON ;
 
@@ -103,28 +103,34 @@ principal ::= PROCEDURE PRINCIPAL OPEN_PAREN CLOSE_PAREN
                 System.out.println("Procedimiento principal agregado a la tabla de símbolos (tipo void).");
         }
 
-        tablaSimbolos.enterScope();
         System.out.println(">> Entrando a ámbito del procedimiento principal");
 
     :}
     bloque
     {:
-        tablaSimbolos.exitScope();
         System.out.println("<< Saliendo del ámbito del procedimiento principal");
     :};
  
-funcion ::= tipo_ret:ret IDENTIFIER:id 
+funcion ::=
+    tipo_ret:ret IDENTIFIER:id
     {:
-        tablaSimbolos.enterScope();
-        tablaSimbolos.addSymbol((String)id, (String)ret, "function", null);
-        System.out.println("Función agregada: " + id + " -> tipo " + ret);
-        
+        String nombre = (String) id;  
+        String tipoRet = (String) ret;
+
+        if (!tablaSimbolos.addSymbol(nombre, tipoRet, "function", null)) {
+            System.err.println("Error semántico: función duplicada " + nombre);
+        } else {
+            Compilador.Symbol s = tablaSimbolos.getSymbol(nombre);
+            s.setReturnType(tipoRet);
+            System.out.println("Función agregada: " + s);
+        }
+
+        System.out.println(">> Entrando a ámbito de función " + nombre);
     :}
     OPEN_PAREN param_formales_opt CLOSE_PAREN
     bloque
     {:
-        tablaSimbolos.exitScope();
-        System.out.println("<< Saliendo de ambito de funcion " + id);
+        System.out.println("<< Saliendo de ámbito de función " + id);
     :};
             
 param_formales_opt ::= /* vacío */ | lista_params ; 
@@ -165,7 +171,18 @@ tam_arreglo ::= INTEGER_LITERAL ;
 /* ===================== BLOQUES Y SENTENCIAS ===================== */
 
 
-bloque ::= OPEN_BRACE lista_sentencias_opt CLOSE_BRACE;
+bloque ::=
+    OPEN_BRACE
+    {:
+        tablaSimbolos.enterScope();
+        System.out.println(">> Entrando a nuevo ámbito (bloque)");
+    :}
+    lista_sentencias_opt
+    CLOSE_BRACE
+    {:
+        tablaSimbolos.exitScope();
+        System.out.println("<< Saliendo de ámbito (bloque)");
+    :};
 
 lista_sentencias_opt ::= /* vacío */ | lista_sentencias ;
 
@@ -184,31 +201,47 @@ sentencia ::= sent_decl_local
 
 comentario ::= comentario_linea| comentario_multilinea ;
 
-comentario_linea ::= COMMENT_LINE ; // REVISAR COMMENTS
+comentario_linea ::= COMMENT_LINE ; 
 comentario_multilinea ::= COMMENT_MULTI ;
 
 sent_decl_local ::= LET decl_var SEMICOLON;
 
 decl_var ::= decl_var_simple | decl_var_arreglo;
 
-decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt {:
+decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valorInit {:
     String nombre = (String) id;       
     String tipoVar = (String) tipo;    
-    if (!tablaSimbolos.addSymbol(nombre, tipoVar, "variable", null)) {
-        System.err.println("Error semantico: variable " + nombre + " ya declarada.");
+    Object valor = valorInit;
+
+    if (!tablaSimbolos.addSymbol(nombre, tipoVar, "variable", valor)) {
+        System.err.println("Error semántico: variable " + nombre + " ya declarada.");
     } else {
-        System.out.println("Variable agregada: " + nombre + " (" + tipoVar + ")");
+        Compilador.Symbol s = tablaSimbolos.getSymbol((String) id);
+        s.setAddress(nombre);  
+        s.setOffset(0);       
+        System.out.println("Variable agregada: " + s);
     }
 :};
 
 decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
 
-init_opt ::= /* vacío */ | ASSIGN expr ;
+init_opt ::=
+    /* vacío */ 
+        {: RESULT = null; :}
+  | ASSIGN expr:valor
+        {: RESULT = valor; :};
 
 init_arr_opt ::=   /*vacio*/ |ASSIGN lit_arreglo;
  
 
-asignacion ::= lvalue ASSIGN expr ;
+asignacion ::= IDENTIFIER:id ASSIGN expr:valor {:
+    boolean ok = tablaSimbolos.updateValue((String)id, valor);
+    if (!ok) {
+        System.err.println("Error: variable " + id + " no declarada.");
+    } else {
+        System.out.println("Asignación: " + id + " = " + valor);
+    }
+:};
 
 
 lvalue ::= IDENTIFIER lvalue_aux;
@@ -292,57 +325,53 @@ lista_out ::= lista_out COMMA expr | expr;
 
 /* ===================== EXPRESIONES ===================== */
 
-expr ::= expr_log_or ;
+expr ::= expr_log_or:val {: RESULT = val; :};
 
 expr_log_or ::= expr_log_or OR expr_log_and
-              | expr_log_and
+              {: RESULT = true; :} // simplificado: no se evalúa aún, pero no es null
+              | expr_log_and:val {: RESULT = val; :}
               ;
 
 expr_log_and ::= expr_log_and AND expr_rel
-               | expr_rel
+               {: RESULT = true; :}
+               | expr_rel:val {: RESULT = val; :}
                ;
 
-expr_rel ::= expr_aditiva op_rel expr_aditiva
-           | expr_aditiva
+expr_rel ::= expr_aditiva:val1 op_rel expr_aditiva:val2
+           {: RESULT = true; :} // igual: no evaluamos aún, pero evita null
+           | expr_aditiva:val {: RESULT = val; :}
            ;
 
-op_rel ::= LT | LE | GT | GE | EQ | NE ;
-
 expr_aditiva ::= expr_aditiva PLUS expr_mult
+               {: RESULT = null; :}
                | expr_aditiva MINUS expr_mult
-               | expr_mult
+               {: RESULT = null; :}
+               | expr_mult:val {: RESULT = val; :}
                ;
 
 expr_mult ::= expr_mult MULT expr_pot
+            {: RESULT = null; :}
             | expr_mult DIV expr_pot
+            {: RESULT = null; :}
             | expr_mult INT_DIV expr_pot
+            {: RESULT = null; :}
             | expr_mult MOD expr_pot
-            | expr_pot
+            {: RESULT = null; :}
+            | expr_pot:val {: RESULT = val; :}
             ;
 
-expr_pot ::= expr_unaria POW expr_pot
-           | expr_unaria
-           ;
+expr_pot ::= expr_unaria:val {: RESULT = val; :};
 
-expr_unaria ::= op_unario expr_unaria
-              | expr_postfijo
+expr_unaria ::= op_unario expr_unaria {: RESULT = null; :}
+              | expr_postfijo:val {: RESULT = val; :}
               ;
 
-op_unario ::= SIGMA | MINUS;
+expr_postfijo ::= primario:val {: RESULT = val; :};
 
-expr_postfijo ::= expr_postfijo postfix_op
-                | primario
-                ;
-
-postfix_op ::= INCREMENT
-             | DECREMENT
-             | OPEN_BRACKET expr CLOSE_BRACKET
-             ;
-
-primario ::= lit
-           | lvalue
-           | llamada_func
-           | OPEN_PAREN expr CLOSE_PAREN
+primario ::= lit:val {: RESULT = val; :}
+           | lvalue {: RESULT = null; :}
+           | llamada_func {: RESULT = null; :}
+           | OPEN_PAREN expr:val CLOSE_PAREN {: RESULT = val; :}
            ;
 
 llamada_func ::= 
@@ -358,14 +387,15 @@ cond_bool ::= expr ;
 
 /* ===================== LITERALES ===================== */
 
-lit ::= INTEGER_LITERAL
-      | FLOAT_LITERAL
-      | TRUE
-      | FALSE
-      | CHAR_LITERAL
-      | STRING_LITERAL              
-      | lit_arreglo
-      ;
+lit ::=
+      INTEGER_LITERAL:val     {: RESULT = val; :}
+    | FLOAT_LITERAL:val       {: RESULT = val; :}
+    | TRUE                    {: RESULT = true; :}
+    | FALSE                   {: RESULT = false; :}
+    | CHAR_LITERAL:val        {: RESULT = val; :}
+    | STRING_LITERAL:val      {: RESULT = val; :}
+    | lit_arreglo:val         {: RESULT = val; :}
+    ;
 
 lit_arreglo ::= OPEN_BRACE lista_elem_arr_opt CLOSE_BRACE ;
 
