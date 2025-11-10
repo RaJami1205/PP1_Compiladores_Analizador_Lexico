@@ -48,6 +48,7 @@ public class MySymbol {
 
     // === Setters ===
     public void setValue(Object value) { this.value = value; }
+    public void setType(String type) { this.type = type; }
     public void setAddress(String addr) { this.address = addr; }
     public void setTemporary(boolean temp) { this.isTemporary = temp; }
     public void setOffset(int offset) { this.offset = offset; }

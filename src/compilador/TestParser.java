@@ -54,6 +54,10 @@ public class TestParser {
             System.out.println("Tabla de Símbolos:");
             Parser.tablaSimbolos.printTable();
             Parser.codigoIntermedio.printCode();
+
+            String ruta = "src/Codigo_Intermedio/codigo_intermedio.txt";
+            Parser.codigoIntermedio.exportToFile(ruta);
+            System.out.println(">> Archivo generado correctamente en Codigo_Intermedio/codigo_intermedio.txt");
             
 
         } catch (Exception e) {
