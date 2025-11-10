@@ -6,6 +6,9 @@ import Compilador.SymbolTable;
 import Compilador.IntermediateCode;
 import Compilador.GenerateTemp;
 import Compilador.GenerateLabel;
+import java.util.List;
+import java.util.ArrayList;
+
 
 parser code {:
     
@@ -157,7 +160,7 @@ non terminal
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
     lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,decl_var_arreglo,
-    init_arr_opt,lvalue_aux;
+    init_arr_opt,lvalue_aux,sign,literal_numerico;
 
 precedence left OR;
 precedence left AND;
@@ -243,14 +246,9 @@ tipo ::= INT   {: RESULT = "int"; :}
        | CHAR  {: RESULT = "char"; :}
        | BOOL  {: RESULT = "bool"; :}
        | STRING {: RESULT = "string"; :}
-       | tipo_arreglo {: RESULT = "array"; :}
        ;
+                
 
-tipo_arreglo ::= INT OPEN_BRACKET tam_arreglo CLOSE_BRACKET {: RESULT = "int[]"; :}
-               | CHAR OPEN_BRACKET tam_arreglo CLOSE_BRACKET {: RESULT = "char[]"; :}
-               ;
-
-tam_arreglo ::= INTEGER_LITERAL ;
 
 /* ===================== BLOQUES Y SENTENCIAS ===================== */
 
@@ -270,7 +268,7 @@ bloque ::=
 
 lista_sentencias_opt ::= /* vacío */ | lista_sentencias ;
 
-lista_sentencias ::= lista_sentencias sentencia | sentencia ; // evitar ambiguedades 
+lista_sentencias ::= lista_sentencias sentencia | sentencia ; 
 
 sentencia ::= sent_decl_local
             | sent_asig_o_expr
@@ -283,11 +281,6 @@ sentencia ::= sent_decl_local
             | comentario 
             ;
 
-comentario ::= comentario_linea| comentario_multilinea ;
-
-comentario_linea ::= COMMENT_LINE ; 
-comentario_multilinea ::= COMMENT_MULTI ;
-
 sent_decl_local ::= LET decl_var SEMICOLON;
 
 decl_var ::= decl_var_simple | decl_var_arreglo;
@@ -297,7 +290,6 @@ decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valorInit {:
     String tipoVar = (String) tipo;    
     Object valor = valorInit;
 
-    // Inferir tipo del valor (si existe inicialización)
     String tipoValor = null;
     if (valor != null) {
         tipoValor = inferTypeOfOperand(valor.toString());
@@ -317,10 +309,80 @@ decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valorInit {:
         s.setAddress(nombre);  
         s.setOffset(0);       
         System.out.println("Variable agregada: " + s);
+
+        codigoIntermedio.add("DECLARE", tipoVar,null,nombre);
+
+         if (valor != null) {
+            codigoIntermedio.add("=", valor.toString(), null, nombre);
+        }
     }
+    RESULT = nombre;
 :};
 
-decl_var_arreglo ::= IDENTIFIER COLON tipo_arreglo init_arr_opt ;
+
+decl_var_arreglo ::= tipo:tipo IDENTIFIER:id OPEN_BRACKET tam_arreglo:size CLOSE_BRACKET init_arr_opt:init {:
+/*
+    String nombre = (String) id;
+    String tipoBase = (String) tipo;
+    String tamanio = (String) size;
+    Object inicializacion = init;
+
+    String tipoTam = inferTypeOfOperand(tamanio);
+    if (!tipoTam.equals("int")) {
+        String msg = "Error semántico: el tamaño del arreglo '" + nombre + "' debe ser entero, no " + tipoTam;
+        System.err.println(msg);
+        errores.add(msg);
+    }
+
+
+    // Verificar duplicados
+    if (!tablaSimbolos.addSymbol(nombre, tipoBase + "[]", "arreglo", null)) {
+        System.err.println("Error semántico: el arreglo " + nombre + " ya fue declarado.");
+    } else {
+        Compilador.MySymbol s = tablaSimbolos.getSymbol(nombre);
+        s.setAddress(nombre);
+        s.setArraySize(Integer.parseInt(tamanio));
+        s.setOffset(0);
+
+        System.out.println("Arreglo agregado: " + s);
+
+        // Código intermedio: declarar arreglo
+        codigoIntermedio.add("DECLARE_ARRAY", tipoBase, tamanio, nombre);
+
+        // Si existe inicialización (init_arr_opt)
+        if (inicializacion != null) {
+            List<String> valores = (List<String>) inicializacion;
+
+            if (valores.size() > Integer.parseInt(tamanio)) {
+                String msg = "Error semántico: demasiados valores en la inicialización del arreglo '" + nombre + "'";
+                System.err.println(msg);
+                errores.add(msg);
+            }
+
+            int index = 0;
+            for (String v : valores) {
+                String tipoValor = inferTypeOfOperand(v);
+                if (!tiposCompatibles(tipoBase, tipoValor)) {
+                    String msg = "Error semántico: tipo incompatible en arreglo '" + nombre +
+                                 "' en índice " + index + ": esperado " + tipoBase + " pero encontrado " + tipoValor;
+                    System.err.println(msg);
+                    errores.add(msg);
+                } else {
+                    // Generar instrucción de asignación de elemento
+                    String tempIndex = codigoIntermedio.newTemp();
+                    codigoIntermedio.add("=", String.valueOf(index), null, tempIndex);
+                    codigoIntermedio.add("ARR_STORE", nombre, tempIndex, v);
+                }
+                index++;
+            }
+        }
+    }
+
+    RESULT = nombre;*/
+:};
+
+
+tam_arreglo ::= expr;
 
 init_opt ::=
     /* vacío */ 
@@ -328,40 +390,52 @@ init_opt ::=
   | ASSIGN expr:valor
         {: RESULT = valor; :};
 
-init_arr_opt ::=   /*vacio*/ |ASSIGN lit_arreglo;
+init_arr_opt ::=   /*vacio*/ | ASSIGN lit_arreglo;
  
 
-asignacion ::= IDENTIFIER:id ASSIGN expr:valor {:
-    String dest = (String) id;
-    String src = (String) valor;
+asignacion ::= lvalue:id ASSIGN expr:valor 
+    {:
+        String dest = (String) id;
+        String src = (String) valor;
 
-    MySymbol varDest = tablaSimbolos.getSymbol(dest);
-    if (varDest == null) {
-        String msg = "Error semántico: variable no declarada '" + dest + "'";
-        System.err.println(msg);
-        errores.add(msg);
-    } else {
-        String tipoDest = varDest.getType();
-        String tipoSrc = inferTypeOfOperand(src);
-
-        if (!tiposCompatibles(tipoDest, tipoSrc)) {
-            String msg = "Error semántico: tipos incompatibles en asignación '" +
-                         dest + " = " + src + "' (" + tipoDest + " ← " + tipoSrc + ")";
+        MySymbol varDest = tablaSimbolos.getSymbol(dest);
+        if (varDest == null) {
+            String msg = "Error semántico: variable no declarada '" + dest + "'";
             System.err.println(msg);
             errores.add(msg);
+        } else {
+            String tipoDest = varDest.getType();
+            String tipoSrc = inferTypeOfOperand(src);
+
+            if (!tiposCompatibles(tipoDest, tipoSrc)) {
+                String msg = "Error semántico: tipos incompatibles en asignación '" +
+                             dest + " = " + src + "' (" + tipoDest + " ← " + tipoSrc + ")";
+                System.err.println(msg);
+                errores.add(msg);
+            }
         }
-    }
 
-    // generar cuadruplo de asignación
-    codigoIntermedio.add("=", src, null, dest);
-    tablaSimbolos.updateValue(dest, src);
-    System.out.println("Asignación: " + dest + " = " + src);
-:};
+        // generar cuadruplo de asignación
+        codigoIntermedio.add("=", src, null, dest);
+        tablaSimbolos.updateValue(dest, src);
+        System.out.println("Asignación: " + dest + " = " + src);
+        RESULT = dest;
+    :};
 
 
-lvalue ::= IDENTIFIER lvalue_aux;
 
-lvalue_aux::= /*vacio*/ | IDENTIFIER OPEN_BRACKET expr CLOSE_BRACKET;
+lvalue ::= IDENTIFIER:id lvalue_aux:aux 
+            {: 
+                if (aux == null) {
+                    RESULT = id;
+                } else {
+                    RESULT = id + aux;
+                }
+            :};
+
+lvalue_aux ::= /* vacio */ {: RESULT = null; :}
+             | OPEN_BRACKET expr:e CLOSE_BRACKET {: RESULT = "[" + e + "]"; :}
+             ;
 
 
 expr_sin_asignacion ::= expr ;
@@ -480,16 +554,47 @@ sent_for ::=
         tablaSimbolos.enterScope();
         System.out.println(">> Entrando a ambito FOR");
     :}
-    asignacion STEP valor_step for_dir expr DO bloque
+    decl_var_simple:init STEP valor_step:step for_dir:dir expr:limit DO bloque:body
     {:
+        String var = (String) init;
+        String paso = (String) step;
+        String limite = (String) limit;
+
+        String Linicio = codigoIntermedio.newLabel();
+        String Lfin = codigoIntermedio.newLabel();
+
+        codigoIntermedio.add("LABEL",null,null, Linicio);
+        
+        String tempCond = codigoIntermedio.newTemp();
+
+        if (dir.equals("TO")){
+            codigoIntermedio.add(">",var,limite,tempCond);
+            codigoIntermedio.add("IF_TRUE",tempCond,null, Lfin);
+
+            codigoIntermedio.add("+",var,paso,var);
+        }
+        else{
+            // DOWNTO
+            codigoIntermedio.add("<",var,limite,tempCond);
+            codigoIntermedio.add("IF_TRUE",tempCond,null,Lfin);
+            
+            codigoIntermedio.add("-",var,paso,var);
+
+        }
+
+        codigoIntermedio.add("GOTO",null,null,Linicio);
+
+        codigoIntermedio.add("LABEL",null,null,Lfin);
+
         tablaSimbolos.exitScope();
         System.out.println("<< Saliendo de ambito FOR");
     :};
 
 
-for_dir ::= TO | DOWNTO ;
+for_dir ::= TO {:RESULT = "TO";:} | DOWNTO {:RESULT = "DOWNTO";:};
 
-valor_step ::= INTEGER_LITERAL | FLOAT_LITERAL ;
+valor_step ::= expr;
+
 
 /* ===================== RETURN / BREAK ===================== */
 

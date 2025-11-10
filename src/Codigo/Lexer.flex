@@ -111,11 +111,11 @@ Identifier = [_]*[a-zA-Z][a-zA-Z0-9_]*
     {Identifier}       { return symbol(sym.IDENTIFIER, yytext()); }
     
     /* Comentarios - se ignoran */
-    {CommentLine}      { /* ignorar */ }
-    {CommentMulti}     { /* ignorar */ }
+    {CommentLine}      {}
+    {CommentMulti}     {}
     
     /* Espacios en blanco */
-    {WhiteSpace}       { /* ignorar */ }
+    {WhiteSpace}       {}
 }
 
 [^ \t\r\n] {
