@@ -20,7 +20,7 @@ public class TestParser {
         System.out.println("-------------------------------------");
 
         try {
-            // === 1️ANÁLISIS LÉXICO ===
+            // === ANÁLISIS LÉXICO ===
             FileReader fr = new FileReader(archivo);
             Lexer lexer = new Lexer(fr);
 
@@ -74,7 +74,7 @@ public class TestParser {
         }
     }
 
-    /** Convierte el número de token a su nombre legible (para imprimir) */
+    /** Convierte el número de token a su nombre legible */
     private static String symToString(int symCode) {
         try {
             for (java.lang.reflect.Field f : sym.class.getFields()) {

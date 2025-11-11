@@ -104,14 +104,13 @@ parser code {:
     private boolean tiposCompatibles(String tipoDestino, String tipoFuente) {
     if (tipoDestino == null || tipoFuente == null) return true; // evitar errores en nulos
 
-    // Normalizar a minúsculas
     tipoDestino = tipoDestino.toLowerCase();
     tipoFuente = tipoFuente.toLowerCase();
 
     // Mismos tipos siempre compatibles
     if (tipoDestino.equals(tipoFuente)) return true;
 
-    // Compatibilidades numéricas (ej: int = float es válido)
+    // Compatibilidades numéricas 
     if ((tipoDestino.equals("float") && tipoFuente.equals("int")) ||
         (tipoDestino.equals("int") && tipoFuente.equals("float"))) {
         return true;
@@ -360,14 +359,12 @@ decl_var_arreglo ::= tipo:tipo IDENTIFIER:id OPEN_BRACKET tam_arreglo:size CLOSE
 
         System.out.println("Arreglo agregado: " + s);
 
-        // Código intermedio: declarar arreglo
         codigoIntermedio.add("DECLARE_ARRAY", tipoBase, tamanio, nombre);
 
-        // Si hay inicialización
         if (inicializacion != null) {
             List<String> valores = (List<String>) inicializacion;
 
-            if (valores.size() > s.getArraySize()) {
+            if (valores.size() > s.getArraySize()) { // si la inicializacion es mayor al tamanio
                 String msg = "Error semántico: demasiados valores en la inicialización del arreglo '" + nombre + "'";
                 System.err.println(msg);
                 errores.add(msg);
@@ -573,13 +570,15 @@ sent_for ::=
         String paso = (String) step;
         String limite = (String) limit;
 
-        String Linicio = codigoIntermedio.newLabel();
+        // Labels de inicio y fin de for 
+        String Linicio = codigoIntermedio.newLabel(); 
         String Lfin = codigoIntermedio.newLabel();
 
         codigoIntermedio.add("LABEL",null,null, Linicio);
-        
+        // Genera el temporal
         String tempCond = codigoIntermedio.newTemp();
 
+        // Si el for es creciente TO
         if (dir.equals("TO")){
             codigoIntermedio.add(">",var,limite,tempCond);
             codigoIntermedio.add("IF_TRUE",tempCond,null, Lfin);
@@ -594,10 +593,10 @@ sent_for ::=
             codigoIntermedio.add("-",var,paso,var);
 
         }
-
+        // Vuelve a la etiqueta de inicio
         codigoIntermedio.add("GOTO",null,null,Linicio);
 
-        codigoIntermedio.add("LABEL",null,null,Lfin);
+        codigoIntermedio.add("LABEL",null,null,Lfin); // Cierra el bucle
 
         tablaSimbolos.exitScope();
         System.out.println("<< Saliendo de ambito FOR");
