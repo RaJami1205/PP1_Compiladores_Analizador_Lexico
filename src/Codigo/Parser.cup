@@ -340,7 +340,7 @@ decl_var_arreglo ::= tipo:tipo IDENTIFIER:id OPEN_BRACKET tam_arreglo:size CLOSE
         s.setAddress(nombre);
         s.setOffset(0);
 
-        // Validar tamaño (solo después de tener 's')
+        // Validar tamaño 
         String tipoTam = inferTypeOfOperand(tamanio);
         if (!tipoTam.equals("int")) {
             String msg = "Error semántico: el tamaño del arreglo '" + nombre + "' debe ser entero, no " + tipoTam;
