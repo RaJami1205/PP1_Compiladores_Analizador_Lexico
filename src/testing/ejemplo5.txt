@@ -2,14 +2,10 @@ let int numero$
 let char inicial = 'X'$
 let bool es_valido = true$
 
-| comentario prueba
-| actual problema con scopes en variable globales y asignacion de avariables
-
 let int i = 5$
 let int array2[i] = ¿1,2,3,4,5?$
 
 procedure principalєэ¿ 
     for int i=10 step -1 to 0 do ¿ 
-        let int numero = 5$
     ?
 ?

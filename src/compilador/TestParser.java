@@ -7,6 +7,7 @@ import ParserLexer.Parser;
 import ParserLexer.sym;
 
 public class TestParser {
+
     public static void main(String[] args) {
         if (args.length < 1) {
             System.out.println("Uso: java Compilador.TestParser <archivo>");
@@ -14,55 +15,73 @@ public class TestParser {
         }
 
         String archivo = args[0];
-        System.out.println("? Analizando archivo: " + archivo);
+        System.out.println("=== ANALIZADOR DE ARCHIVO ===");
+        System.out.println("Archivo: " + archivo);
         System.out.println("-------------------------------------");
 
         try {
-            
+            // === 1️ANÁLISIS LÉXICO ===
             FileReader fr = new FileReader(archivo);
             Lexer lexer = new Lexer(fr);
-            
-            Symbol token;
-            System.out.println("Tokens detectados por el lexer:");
-            while ((token = lexer.next_token()).sym != sym.EOF) {
-                System.out.println("Token: " + token.sym + " -> " + lexer.yytext());
-            }
-            System.out.println("Fin de tokens\n");
 
-            // Reiniciamos el lector para el parser
-            fr = new FileReader(archivo);
+            System.out.println("\n[LEXER] Tokens detectados:");
+            Symbol token;
+            while ((token = lexer.next_token()).sym != sym.EOF) {
+                System.out.printf("  %-15s -> '%s'%n", symToString(token.sym), lexer.yytext());
+            }
+
+            // === ANÁLISIS SINTÁCTICO Y SEMÁNTICO ===
+            fr = new FileReader(archivo);  // reiniciar lector
             lexer = new Lexer(fr);
-            
-            // Pasar la tabla de símbolos al parser
             Parser parser = new Parser(lexer);
-            
-            System.out.println("Iniciando análisis sintáctico...");
+
+            System.out.println("\n[PARSER] Iniciando análisis sintáctico y semántico...");
             parser.parse();
             System.out.println("-------------------------------------");
 
-            System.out.println("\n--- Resumen de errores ---");
+            // === MANEJO DE ERRORES ===
+            System.out.println("\n--- RESUMEN DE ERRORES ---");
             if (Parser.errores.isEmpty()) {
-                System.out.println("No se encontraron errores sintácticos.");
-                System.out.println("El archivo es valido y puede ser generado por la gramatica.\n");
+                System.out.println("No se encontraron errores sintácticos ni semánticos.");
+                System.out.println("El archivo es válido y puede ser generado por la gramática.\n");
+
+                // === GENERACIÓN DEL CÓDIGO INTERMEDIO ===
+                String ruta = "src/Codigo_Intermedio/codigo_intermedio.txt";
+                Parser.codigoIntermedio.exportToFile(ruta);
+                System.out.println(">> Código intermedio generado correctamente en: " + ruta);
+
             } else {
+                System.out.println("Se detectaron errores. El archivo no puede ser generado:\n");
                 for (String err : Parser.errores) {
-                    System.out.println(err);
+                    System.out.println("  - " + err);
                 }
-                System.out.println("\nEl archivo no puede ser generado por la gramatica.\n");
+                System.out.println("\nCódigo intermedio no generado debido a errores.");
             }
 
-            System.out.println("Tabla de Símbolos:");
+            // === TABLA DE SÍMBOLOS Y CÓDIGO INTERMEDIO ===
+            System.out.println("\n--- TABLA DE SÍMBOLOS ---");
             Parser.tablaSimbolos.printTable();
-            Parser.codigoIntermedio.printCode();
 
-            String ruta = "src/Codigo_Intermedio/codigo_intermedio.txt";
-            Parser.codigoIntermedio.exportToFile(ruta);
-            System.out.println(">> Archivo generado correctamente en Codigo_Intermedio/codigo_intermedio.txt");
-            
+            if (Parser.errores.isEmpty()) {
+                Parser.codigoIntermedio.printCode();
+            }
+
+            System.out.println("-------------------------------------");
 
         } catch (Exception e) {
-            System.out.println("? Error durante el análisis. El archivo no puede ser generado por la gramatica:");
+            System.out.println("\nError fatal durante el análisis. El archivo no puede ser generado:");
             e.printStackTrace();
         }
+    }
+
+    /** Convierte el número de token a su nombre legible (para imprimir) */
+    private static String symToString(int symCode) {
+        try {
+            for (java.lang.reflect.Field f : sym.class.getFields()) {
+                if (f.getInt(null) == symCode)
+                    return f.getName();
+            }
+        } catch (Exception ignored) {}
+        return "SYM(" + symCode + ")";
     }
 }

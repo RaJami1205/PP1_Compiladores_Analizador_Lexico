@@ -9,7 +9,6 @@ public class IntermediateCode {
 
     public void add(String op, String arg1, String arg2, String res) {
         code.add(new Quadruple(op, arg1, arg2, res));
-        System.out.println("[IC] add -> (" + op + ", " + arg1 + ", " + arg2 + ", " + res + ")");
     }
 
     public String newTemp() {
@@ -28,7 +27,6 @@ public class IntermediateCode {
                 writer.println(index + ": " + q.toString());
                 index++;
             }
-            System.out.println("[INFO] Código intermedio exportado a: " + filePath);
         } catch (IOException e) {
             System.err.println("[ERROR] No se pudo exportar el código intermedio: " + e.getMessage());
         }

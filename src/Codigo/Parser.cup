@@ -55,15 +55,17 @@ parser code {:
 
         op = op.trim();
 
+        System.out.println("Operando: " + op);
+
         if (op.equalsIgnoreCase("true") || op.equalsIgnoreCase("false")) {
             return "bool";
         }
 
-        if (op.length() >= 3 && op.startsWith("'") && op.endsWith("'")) {
+        if (op.length() == 3 && op.startsWith("'") && op.endsWith("'")) {
             return "char";
         }
 
-        if (op.length() >= 2 && op.startsWith("\"") && op.endsWith("\"")) {
+        if (op.length() >= 2 && op.startsWith("'") && op.endsWith("'")) {
             return "string";
         }
 
@@ -152,15 +154,19 @@ terminal
 /* Definición de los no terminales */
 non terminal 
     programa, decl_glob, decl_var, funcion, principal, 
-    param_formales_opt, lista_params, param, tipo_ret, tipo, tipo_arreglo, tam_arreglo,
+    param_formales_opt, lista_params, param, tipo_ret, tipo, tipo_arreglo,
     bloque, sentencia, sent_decl_local, sent_asig_o_expr, sent_decide, sent_loop, sent_for,
     sent_return, sent_break, sent_io, comentario, comentario_linea, comentario_multilinea,
-    init_opt, asignacion, lvalue, expr_sin_asignacion, lista_out, expr,
+    init_opt, asignacion, lvalue, expr_sin_asignacion, lista_out,
     expr_log_or, expr_log_and, expr_rel, op_rel, expr_aditiva, expr_mult, expr_pot, expr_unaria,
     op_unario, expr_postfijo, postfix_op, primario, llamada_func, lista_args_opt, lista_args,
     cond_bool, lit, lista_elem_arr_opt, lista_elem_arr, valor_step,sent_loop_rec,for_dir,sent_decide_rec,
-    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,decl_var_arreglo,
+    lit_arreglo,lista_decl,decl,lista_sentencias_opt,lista_sentencias,decl_var_simple,
     init_arr_opt,lvalue_aux,sign,literal_numerico;
+
+non terminal Object decl_var_arreglo;
+non terminal Object tam_arreglo;
+non terminal Object expr;
 
 precedence left OR;
 precedence left AND;
@@ -321,39 +327,47 @@ decl_var_simple ::= tipo:tipo IDENTIFIER:id init_opt:valorInit {:
 
 
 decl_var_arreglo ::= tipo:tipo IDENTIFIER:id OPEN_BRACKET tam_arreglo:size CLOSE_BRACKET init_arr_opt:init {:
-/*
     String nombre = (String) id;
     String tipoBase = (String) tipo;
-    String tamanio = (String) size;
+    String tamanio = (size != null) ? String.valueOf(size) : null;
     Object inicializacion = init;
 
-    String tipoTam = inferTypeOfOperand(tamanio);
-    if (!tipoTam.equals("int")) {
-        String msg = "Error semántico: el tamaño del arreglo '" + nombre + "' debe ser entero, no " + tipoTam;
-        System.err.println(msg);
-        errores.add(msg);
-    }
-
-
-    // Verificar duplicados
+    // Primero agregamos el símbolo del arreglo
     if (!tablaSimbolos.addSymbol(nombre, tipoBase + "[]", "arreglo", null)) {
         System.err.println("Error semántico: el arreglo " + nombre + " ya fue declarado.");
     } else {
         Compilador.MySymbol s = tablaSimbolos.getSymbol(nombre);
         s.setAddress(nombre);
-        s.setArraySize(Integer.parseInt(tamanio));
         s.setOffset(0);
+
+        // Validar tamaño (solo después de tener 's')
+        String tipoTam = inferTypeOfOperand(tamanio);
+        if (!tipoTam.equals("int")) {
+            String msg = "Error semántico: el tamaño del arreglo '" + nombre + "' debe ser entero, no " + tipoTam;
+            System.err.println(msg);
+            errores.add(msg);
+            s.setArraySize(0);
+        } else {
+            try {
+                s.setArraySize(Integer.parseInt(tamanio));
+            } catch (NumberFormatException ex) {
+                String msg = "Error semántico: el tamaño del arreglo '" + nombre + "' debe ser un valor entero literal, no una variable o expresión.";
+                System.err.println(msg);
+                errores.add(msg);
+                s.setArraySize(0);
+            }
+        }
 
         System.out.println("Arreglo agregado: " + s);
 
         // Código intermedio: declarar arreglo
         codigoIntermedio.add("DECLARE_ARRAY", tipoBase, tamanio, nombre);
 
-        // Si existe inicialización (init_arr_opt)
+        // Si hay inicialización
         if (inicializacion != null) {
             List<String> valores = (List<String>) inicializacion;
 
-            if (valores.size() > Integer.parseInt(tamanio)) {
+            if (valores.size() > s.getArraySize()) {
                 String msg = "Error semántico: demasiados valores en la inicialización del arreglo '" + nombre + "'";
                 System.err.println(msg);
                 errores.add(msg);
@@ -368,7 +382,7 @@ decl_var_arreglo ::= tipo:tipo IDENTIFIER:id OPEN_BRACKET tam_arreglo:size CLOSE
                     System.err.println(msg);
                     errores.add(msg);
                 } else {
-                    // Generar instrucción de asignación de elemento
+                    // Generar asignación ARR_STORE
                     String tempIndex = codigoIntermedio.newTemp();
                     codigoIntermedio.add("=", String.valueOf(index), null, tempIndex);
                     codigoIntermedio.add("ARR_STORE", nombre, tempIndex, v);
@@ -378,9 +392,8 @@ decl_var_arreglo ::= tipo:tipo IDENTIFIER:id OPEN_BRACKET tam_arreglo:size CLOSE
         }
     }
 
-    RESULT = nombre;*/
+    RESULT = nombre;
 :};
-
 
 tam_arreglo ::= expr;
 
@@ -646,7 +659,7 @@ lista_out ::=
 expr ::= expr_log_or:val {: RESULT = val; :};
 
 expr_log_or ::= expr_log_or OR expr_log_and
-              {: RESULT = true; :} // simplificado: no se evalúa aún, pero no es null
+              {: RESULT = true; :} 
               | expr_log_and:val {: RESULT = val; :}
               ;
 
@@ -688,7 +701,7 @@ expr_aditiva ::=
             String op2 = (String) e2;
             // inferir tipo para el temporal
             String tipo = inferTypeOfOperand(op1);
-            if (tipo.equals("int") == false) tipo = inferTypeOfOperand(op2); // intento simple
+            if (tipo.equals("int") == false) tipo = inferTypeOfOperand(op2); 
             MySymbol tmpSym = createTempFor(tipo);
             String tname = tmpSym.getAddress();
             codigoIntermedio.add("+", op1, op2, tname);
@@ -718,7 +731,7 @@ expr_mult ::= expr_mult MULT expr_pot
             | expr_pot:val {: RESULT = val; :}
             ;
 
-expr_pot ::= expr_unaria POW expr_pot | expr_unaria ;
+expr_pot ::= expr_unaria:val {: RESULT = val; :};
 
 expr_unaria ::= op_unario expr_unaria {: RESULT = null; :}
               | expr_postfijo:val {: RESULT = val; :}
@@ -766,12 +779,12 @@ cond_bool ::=
 /* ===================== LITERALES ===================== */
 
 lit ::=
-      INTEGER_LITERAL:val     {: RESULT = val.toString(); :}
-    | FLOAT_LITERAL:val       {: RESULT = val.toString(); :}
-    | TRUE                    {: RESULT = "true"; :}
-    | FALSE                   {: RESULT = "false"; :}
-    | CHAR_LITERAL:val        {: RESULT = "'" + val.toString() + "'"; :} // o val.toString()
-    | STRING_LITERAL:val      {: RESULT = "\"" + val + "\""; :}
+      INTEGER_LITERAL:val     {: RESULT = val; :}
+    | FLOAT_LITERAL:val       {: RESULT = val; :}
+    | TRUE                    {: RESULT = true; :}
+    | FALSE                   {: RESULT = false; :}
+    | CHAR_LITERAL:val        {: RESULT = "'" + val + "'"; :} 
+    | STRING_LITERAL:val      {: RESULT = "'" + val + "'"; :} 
     | lit_arreglo:val         {: RESULT = val; :}
     ;
 
