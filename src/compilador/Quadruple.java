@@ -1,5 +1,16 @@
 package Compilador;
 
+
+/**
+ * Clase que representa una instrucción en forma de cuádrupla dentro del
+ * código intermedio del compilador.
+ * 
+ * En la generación de código intermedio, las operaciones se expresan mediante
+ * cuádruplas del tipo:
+ * 
+ *      (operador, argumento1, argumento2, resultado)
+
+ */
 public class Quadruple {
     private String operator;
     private String arg1;

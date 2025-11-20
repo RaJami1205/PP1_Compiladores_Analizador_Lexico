@@ -2,6 +2,14 @@ package Compilador;
 
 import java.util.*;
 
+/**
+ * Clase que representa un símbolo dentro de la tabla de símbolos del compilador.
+ * 
+ * Cada instancia almacena la información semántica relevante
+ * sobre identificadores encontrados en el código fuente: variables, funciones,
+ * arreglos, constantes, temporales o parámetros.
+ */
+
 public class MySymbol {
     // === Atributos principales ===
     private String name;            
