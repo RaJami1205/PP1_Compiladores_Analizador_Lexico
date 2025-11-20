@@ -19,7 +19,6 @@ msg_end:    .asciiz "Fin del programa.\n"
 # ===============================
 
 suma:
-    # Prologo
     addi $sp, $sp, -12        # espacio para RA, FP y variables locales
     sw   $ra, 8($sp)
     sw   $fp, 4($sp)
@@ -29,7 +28,6 @@ suma:
     # Cuerpo de la función: return a+b
     add  $v0, $a0, $a1        # resultado en $v0
 
-    # Epílogo
     move $sp, $fp
     lw   $ra, 8($sp)
     lw   $fp, 4($sp)
@@ -43,7 +41,6 @@ suma:
 # ===============================
 
 main:
-    # Prologo
     addi $sp, $sp, -16
     sw   $ra, 12($sp)
     sw   $fp, 8($sp)
