@@ -755,14 +755,13 @@ public class Parser extends java_cup.runtime.lr_parser {
     private boolean tiposCompatibles(String tipoDestino, String tipoFuente) {
     if (tipoDestino == null || tipoFuente == null) return true; // evitar errores en nulos
 
-    // Normalizar a minúsculas
     tipoDestino = tipoDestino.toLowerCase();
     tipoFuente = tipoFuente.toLowerCase();
 
     // Mismos tipos siempre compatibles
     if (tipoDestino.equals(tipoFuente)) return true;
 
-    // Compatibilidades numéricas (ej: int = float es válido)
+    // Compatibilidades numéricas 
     if ((tipoDestino.equals("float") && tipoFuente.equals("int")) ||
         (tipoDestino.equals("int") && tipoFuente.equals("float"))) {
         return true;
@@ -1353,7 +1352,7 @@ class CUP$Parser$actions {
         s.setAddress(nombre);
         s.setOffset(0);
 
-        // Validar tamaño (solo después de tener 's')
+        // Validar tamaño 
         String tipoTam = inferTypeOfOperand(tamanio);
         if (!tipoTam.equals("int")) {
             String msg = "Error semántico: el tamaño del arreglo '" + nombre + "' debe ser entero, no " + tipoTam;
@@ -1373,14 +1372,12 @@ class CUP$Parser$actions {
 
         System.out.println("Arreglo agregado: " + s);
 
-        // Código intermedio: declarar arreglo
         codigoIntermedio.add("DECLARE_ARRAY", tipoBase, tamanio, nombre);
 
-        // Si hay inicialización
         if (inicializacion != null) {
             List<String> valores = (List<String>) inicializacion;
 
-            if (valores.size() > s.getArraySize()) {
+            if (valores.size() > s.getArraySize()) { // si la inicializacion es mayor al tamanio
                 String msg = "Error semántico: demasiados valores en la inicialización del arreglo '" + nombre + "'";
                 System.err.println(msg);
                 errores.add(msg);
@@ -1484,7 +1481,7 @@ class CUP$Parser$actions {
 
             if (!tiposCompatibles(tipoDest, tipoSrc)) {
                 String msg = "Error semántico: tipos incompatibles en asignación '" +
-                             dest + " = " + src + "' (" + tipoDest + " ← " + tipoSrc + ")";
+                             dest + " = " + src + "' (" + tipoDest + "  " + tipoSrc + ")";
                 System.err.println(msg);
                 errores.add(msg);
             }
@@ -1788,13 +1785,15 @@ class CUP$Parser$actions {
         String paso = (String) step;
         String limite = (String) limit;
 
-        String Linicio = codigoIntermedio.newLabel();
+        // Labels de inicio y fin de for 
+        String Linicio = codigoIntermedio.newLabel(); 
         String Lfin = codigoIntermedio.newLabel();
 
         codigoIntermedio.add("LABEL",null,null, Linicio);
-        
+        // Genera el temporal
         String tempCond = codigoIntermedio.newTemp();
 
+        // Si el for es creciente TO
         if (dir.equals("TO")){
             codigoIntermedio.add(">",var,limite,tempCond);
             codigoIntermedio.add("IF_TRUE",tempCond,null, Lfin);
@@ -1809,10 +1808,10 @@ class CUP$Parser$actions {
             codigoIntermedio.add("-",var,paso,var);
 
         }
-
+        // Vuelve a la etiqueta de inicio
         codigoIntermedio.add("GOTO",null,null,Linicio);
 
-        codigoIntermedio.add("LABEL",null,null,Lfin);
+        codigoIntermedio.add("LABEL",null,null,Lfin); // Cierra el bucle
 
         tablaSimbolos.exitScope();
         System.out.println("<< Saliendo de ambito FOR");

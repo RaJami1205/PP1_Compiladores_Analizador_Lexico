@@ -419,7 +419,7 @@ asignacion ::= lvalue:id ASSIGN expr:valor
 
             if (!tiposCompatibles(tipoDest, tipoSrc)) {
                 String msg = "Error semántico: tipos incompatibles en asignación '" +
-                             dest + " = " + src + "' (" + tipoDest + " ← " + tipoSrc + ")";
+                             dest + " = " + src + "' (" + tipoDest + "  " + tipoSrc + ")";
                 System.err.println(msg);
                 errores.add(msg);
             }
